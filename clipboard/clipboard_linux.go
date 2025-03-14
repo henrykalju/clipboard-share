@@ -2,8 +2,8 @@
 
 package clipboard
 
-import "fmt"
+import "main/clipboard/clipboardlinux"
 
-func Write() {
-	fmt.Println("Writing to linux clipboard")
+func GetCB() Clipboard {
+	return &clipboardlinux.ClipboardLinux{}
 }

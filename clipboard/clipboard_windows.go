@@ -2,8 +2,6 @@
 
 package clipboard
 
-import "fmt"
-
-func Write() {
-	fmt.Println("Writing to windows clipboard")
+func GetCB() Clipboard {
+	panic("Windows not implemented")
 }
