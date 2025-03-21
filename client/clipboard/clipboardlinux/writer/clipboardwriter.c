@@ -88,7 +88,7 @@ void send_no(Display *dpy, XSelectionRequestEvent *sev) {
 }
 
 void send_targets(Display *dpy, XSelectionRequestEvent *sev) {
-    printf("Sending targets to window 0x%lx, property %s\n", sev->requestor, XGetAtomName(dpy, sev->property));
+    //printf("Sending targets to window 0x%lx, property %s\n", sev->requestor, XGetAtomName(dpy, sev->property));
     Atom *supported_targets = malloc((clipboard_item.len + 1) * sizeof(Atom));
     supported_targets[0] = XInternAtom(dpy, "TARGETS", False);
     

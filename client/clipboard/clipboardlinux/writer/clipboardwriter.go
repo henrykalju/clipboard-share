@@ -8,8 +8,8 @@ package writer
 */
 import "C"
 import (
+	"client/types"
 	"errors"
-	"main/types"
 	"unsafe"
 )
 

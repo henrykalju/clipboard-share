@@ -2,7 +2,7 @@
 
 package clipboard
 
-import "main/clipboard/clipboardlinux"
+import "client/clipboard/clipboardlinux"
 
 func GetCB() Clipboard {
 	return &clipboardlinux.ClipboardLinux{}

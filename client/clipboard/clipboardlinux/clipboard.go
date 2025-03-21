@@ -3,9 +3,9 @@
 package clipboardlinux
 
 import (
-	"main/clipboard/clipboardlinux/listener"
-	"main/clipboard/clipboardlinux/writer"
-	"main/types"
+	"client/clipboard/clipboardlinux/listener"
+	"client/clipboard/clipboardlinux/writer"
+	"client/types"
 )
 
 type ClipboardLinux struct {

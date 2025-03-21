@@ -1,6 +1,6 @@
 package clipboard
 
-import "main/types"
+import "client/types"
 
 type Clipboard interface {
 	Init()

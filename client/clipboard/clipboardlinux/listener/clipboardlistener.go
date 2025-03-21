@@ -8,8 +8,8 @@ package listener
 */
 import "C"
 import (
+	"client/types"
 	"errors"
-	"main/types"
 	"slices"
 	"unsafe"
 )
@@ -20,6 +20,7 @@ func addItemToChan(i types.Item) {
 	if c == nil {
 		panic(errors.New("adding item to nil channel"))
 	}
+	i.Type = types.X11
 	c <- &i
 }
 
