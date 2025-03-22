@@ -1,0 +1,32 @@
+@baseUrl = http://localhost:8080
+
+### Check server health
+# @name HealthCheck
+GET {{baseUrl}}/health
+
+### Get user's items with data
+# @name GetItemsWithData
+GET {{baseUrl}}/items
+person_id: 1
+
+### Add a new clipboard item
+# @name AddNewItem
+POST {{baseUrl}}/items
+Content-Type: application/json
+
+{
+    "PersonID": 1,
+    "Type": {
+        "ClipboardType": "X11",
+        "valid": true
+        },
+    "Content": "test",
+    "Data": [
+        {
+            "Format": "STRING",
+            "Data": "test"
+        }
+    ]
+}
+
+###
