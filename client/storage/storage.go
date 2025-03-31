@@ -1,0 +1,98 @@
+package storage
+
+import (
+	"bytes"
+	"client/types"
+	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
+)
+
+const BACKEND_URL = "http://localhost:8080/items"
+
+type storageItem struct {
+	ID      int32
+	Type    string
+	Content string
+	Data    []data
+}
+
+type data struct {
+	Format string
+	Data   []byte
+}
+
+func SaveItem(i *types.Item) error {
+	si := storageItem{
+		Type:    i.Type.Text,
+		Content: i.Text,
+		Data:    []data{},
+	}
+	for _, v := range i.Values {
+		si.Data = append(si.Data, data{
+			Format: v.Format,
+			Data:   v.Data,
+		})
+	}
+
+	body, err := json.Marshal(&si)
+	if err != nil {
+		return err
+	}
+
+	resp, err := http.Post(BACKEND_URL, "application/json", bytes.NewBuffer(body))
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != http.StatusCreated {
+		return fmt.Errorf("error saving item, response code: %d", resp.StatusCode)
+	}
+	return nil
+}
+
+func GetItems() ([]types.ItemWithID, error) {
+	resp, err := http.Get(BACKEND_URL)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("error getting items from storage, resp code: %d", resp.StatusCode)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var sitems []storageItem
+	err = json.Unmarshal(body, &sitems)
+	if err != nil {
+		return nil, err
+	}
+
+	items := make([]types.ItemWithID, 0)
+	for _, v := range sitems {
+		i := types.ItemWithID{
+			ID: v.ID,
+			//Type: types.GetType(v.Type),
+			Item: types.Item{
+				Type:   types.GetType(v.Type),
+				Text:   v.Content,
+				Values: []types.Value{},
+			},
+		}
+
+		for _, v2 := range v.Data {
+			i.Values = append(i.Values, types.Value{
+				Format: v2.Format,
+				Data:   v2.Data,
+			})
+		}
+
+		items = append(items, i)
+	}
+
+	return items, nil
+}

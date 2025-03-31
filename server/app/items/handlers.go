@@ -5,17 +5,17 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strconv"
 )
 
 func GetAllItems(w http.ResponseWriter, r *http.Request) {
-	personIdS := r.Header.Get("person_id")
+	/*personIdS := r.Header.Get("person_id")
 	personId64, err := strconv.ParseInt(personIdS, 10, 32)
 	if err != nil {
 		fmt.Printf("Error parsing person_id: %s\n", err.Error())
 		w.WriteHeader(http.StatusBadRequest)
 		return
-	}
+	}*/
+	personId64 := 1
 
 	items, err := getItemsWithDataByPerson(int32(personId64))
 	if err != nil {
@@ -53,6 +53,7 @@ func AddItem(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	item.PersonID = 1
 
 	item, err = insertItem(item)
 	if err != nil {

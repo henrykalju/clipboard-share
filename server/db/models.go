@@ -63,7 +63,7 @@ type Datum struct {
 type Item struct {
 	ID        int32
 	PersonID  int32
-	Type      NullClipboardType
+	Type      ClipboardType
 	Content   string
 	CreatedAt pgtype.Timestamp
 }

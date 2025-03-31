@@ -115,7 +115,7 @@ values ($1, $2, $3) returning id, person_id, type, content, created_at
 type InsertItemParams struct {
 	PersonID int32
 	Content  string
-	Type     NullClipboardType
+	Type     ClipboardType
 }
 
 func (q *Queries) InsertItem(ctx context.Context, arg InsertItemParams) (Item, error) {
