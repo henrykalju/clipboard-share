@@ -75,11 +75,11 @@ func ConvertItemC2G(i C.Item) types.Item {
 }
 
 func FindName(values []types.Value) string {
-	STIRNGi := slices.IndexFunc(values, func(v types.Value) bool {
+	STRINGi := slices.IndexFunc(values, func(v types.Value) bool {
 		return v.Format == "STRING"
 	})
-	if STIRNGi != -1 {
-		return string(values[STIRNGi].Data)
+	if STRINGi != -1 {
+		return string(values[STRINGi].Data)
 	}
 
 	return ""

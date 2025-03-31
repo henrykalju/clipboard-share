@@ -66,6 +66,8 @@ func insertItem(item ItemWithData) (ItemWithData, error) {
 		}
 	}()
 
+	fmt.Printf("%v, %v\n", item.Content, []byte(item.Content))
+
 	itemParams := db.InsertItemParams{
 		PersonID: item.PersonID,
 		Content:  item.Content,

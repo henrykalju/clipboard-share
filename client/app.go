@@ -33,7 +33,7 @@ func (a *App) startup(ctx context.Context) {
 
 	c := clipboard.GetCB()
 	c.Init()
-	c.Write(types.Item{Text: "test", Values: []types.Value{{Format: "STRING", Data: []byte("test\n")}}})
+	//c.Write(types.Item{Text: "test", Values: []types.Value{{Format: "STRING", Data: []byte("test\n")}}})
 	a.cbChan = c.GetChan()
 	go a.startListeningForClipboard()
 

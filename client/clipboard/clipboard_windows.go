@@ -1,7 +1,7 @@
-//go:build windows
-
 package clipboard
 
+import "client/clipboard/clipboardwindows"
+
 func GetCB() Clipboard {
-	panic("Windows not implemented")
+	return &clipboardwindows.ClipboardWindows{}
 }
