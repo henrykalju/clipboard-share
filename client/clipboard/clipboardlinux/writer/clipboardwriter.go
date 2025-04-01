@@ -8,7 +8,7 @@ package writer
 */
 import "C"
 import (
-	"client/types"
+	"client/common"
 	"errors"
 	"unsafe"
 )
@@ -26,7 +26,7 @@ func Init() (uint64, error) {
 	return uint64(w), nil
 }
 
-func Write(i types.Item) {
+func Write(i common.Item) {
 	C.set_clipboard_item(ItemGoToC(i))
 }
 
@@ -54,7 +54,7 @@ func newCItem(values []C.Value) C.Item {
 	}
 }
 
-func ItemGoToC(i types.Item) C.Item {
+func ItemGoToC(i common.Item) C.Item {
 	values := []C.Value{}
 	for _, v := range i.Values {
 		values = append(values, newCValue(v.Format, v.Data))

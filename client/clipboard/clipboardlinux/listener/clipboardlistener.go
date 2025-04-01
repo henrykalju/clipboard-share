@@ -8,23 +8,23 @@ package listener
 */
 import "C"
 import (
-	"client/types"
+	"client/common"
 	"errors"
 	"slices"
 	"unsafe"
 )
 
-var c chan *types.Item
+var c chan *common.Item
 
-func addItemToChan(i types.Item) {
+func addItemToChan(i common.Item) {
 	if c == nil {
 		panic(errors.New("adding item to nil channel"))
 	}
-	i.Type = types.X11
+	i.Type = common.X11
 	c <- &i
 }
 
-func GetChan() chan *types.Item {
+func GetChan() chan *common.Item {
 	return c
 }
 
@@ -38,7 +38,7 @@ func Init() (uint64, error) {
 		panic(errors.New("error initing listener"))
 	}
 	go C.StartListening() // TODO: add return
-	c = make(chan *types.Item)
+	c = make(chan *common.Item)
 	return uint64(w), nil
 }
 
@@ -49,9 +49,9 @@ func handleChange(i C.Item) {
 	go addItemToChan(item)
 }
 
-func ConvertItemC2G(i C.Item) types.Item {
+func ConvertItemC2G(i C.Item) common.Item {
 	cValues := unsafe.Slice((*C.Value)(i.values), i.len)
-	goValues := make([]types.Value, i.len)
+	goValues := make([]common.Value, i.len)
 
 	// Convert each C Value to a Go Value
 	for i, cVal := range cValues {
@@ -60,7 +60,7 @@ func ConvertItemC2G(i C.Item) types.Item {
 		// Convert the C uint8_t* array (data) to a Go []byte
 		goData := C.GoBytes(unsafe.Pointer(cVal.data), cVal.data_len)
 
-		goValues[i] = types.Value{
+		goValues[i] = common.Value{
 			Format: name,
 			Data:   goData,
 		}
@@ -68,14 +68,14 @@ func ConvertItemC2G(i C.Item) types.Item {
 
 	name := FindName(goValues)
 
-	return types.Item{
+	return common.Item{
 		Text:   name,
 		Values: goValues,
 	}
 }
 
-func FindName(values []types.Value) string {
-	STRINGi := slices.IndexFunc(values, func(v types.Value) bool {
+func FindName(values []common.Value) string {
+	STRINGi := slices.IndexFunc(values, func(v common.Value) bool {
 		return v.Format == "STRING"
 	})
 	if STRINGi != -1 {

@@ -1,9 +1,9 @@
 <script lang="ts">
   import {EventsOn} from '../wailsjs/runtime'
   import {GetHistory} from '../wailsjs/go/main/App'
-  import {types} from '../wailsjs/go/models'
+  import {common} from '../wailsjs/go/models'
 
-  let items: types.ItemWithID[] = $state([])
+  let items: common.ItemWithID[] = $state([])
   GetHistory().then(result => items = result.reverse())
 
   function cbUpdate(...data: any): void {

@@ -2,8 +2,8 @@ package main
 
 import (
 	"client/clipboard"
+	"client/common"
 	"client/storage"
-	"client/types"
 	"context"
 	"fmt"
 
@@ -17,8 +17,8 @@ var CB = "asd"
 // App struct
 type App struct {
 	ctx     context.Context
-	cbChan  chan *types.Item
-	history []types.Item
+	cbChan  chan *common.Item
+	history []common.Item
 }
 
 // NewApp creates a new App application struct
@@ -33,15 +33,15 @@ func (a *App) startup(ctx context.Context) {
 
 	c := clipboard.GetCB()
 	c.Init()
-	//c.Write(types.Item{Text: "test", Values: []types.Value{{Format: "STRING", Data: []byte("test\n")}}})
+	//c.Write(common.Item{Text: "test", Values: []common.Value{{Format: "STRING", Data: []byte("test\n")}}})
 	a.cbChan = c.GetChan()
 	go a.startListeningForClipboard()
 
-	a.history = make([]types.Item, 0)
-	a.history = append(a.history, types.Item{Text: "test", Values: []types.Value{{Format: "STRING", Data: []byte("test\n")}}})
+	a.history = make([]common.Item, 0)
+	a.history = append(a.history, common.Item{Text: "test", Values: []common.Value{{Format: "STRING", Data: []byte("test\n")}}})
 }
 
-func (a *App) GetHistory() []types.ItemWithID {
+func (a *App) GetHistory() []common.ItemWithID {
 	r, err := storage.GetItems()
 	if err != nil {
 		fmt.Printf("Error getting items from storage: %s\n", err.Error())

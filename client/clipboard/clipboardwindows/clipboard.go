@@ -3,7 +3,7 @@
 package clipboardwindows
 
 import (
-	"client/types"
+	"client/common"
 	"errors"
 	"fmt"
 	"slices"
@@ -25,7 +25,7 @@ func (c *ClipboardWindows) Init() {
 	procTranslateMessage = user32.MustFindProc("TranslateMessage")
 	procDispatchMessage = user32.MustFindProc("DispatchMessageW")
 	procDefWindowProc = user32.MustFindProc("DefWindowProcW")
-	ch = make(chan *types.Item)
+	ch = make(chan *common.Item)
 
 	kernel32 = windows.MustLoadDLL("kernel32.dll")
 	globalAlloc = kernel32.MustFindProc("GlobalAlloc")
@@ -79,9 +79,9 @@ func (c *ClipboardWindows) Init() {
 	}
 
 	text := "testing"
-	i := types.Item{
+	i := common.Item{
 		Text:   text,
-		Values: []types.Value{{Format: "CF_TEXT", Data: append([]byte(text), 0)}},
+		Values: []common.Value{{Format: "CF_TEXT", Data: append([]byte(text), 0)}},
 	}
 
 	//if write first, and then listen, it works
@@ -90,11 +90,11 @@ func (c *ClipboardWindows) Init() {
 	go listen()
 }
 
-func (c *ClipboardWindows) GetChan() chan *types.Item {
+func (c *ClipboardWindows) GetChan() chan *common.Item {
 	return ch
 }
 
-func (c *ClipboardWindows) Write(i types.Item) {
+func (c *ClipboardWindows) Write(i common.Item) {
 	fmt.Printf("writing %v\n", i)
 	err := open()
 	if err != nil {
@@ -120,7 +120,7 @@ func (c *ClipboardWindows) Write(i types.Item) {
 // TODO add if getClipboardOwner == hwnd, dont look at it
 
 var (
-	ch                       chan *types.Item
+	ch                       chan *common.Item
 	user32                   *windows.DLL
 	procRegisterClass        *windows.Proc
 	procCreateWindowEx       *windows.Proc
@@ -236,7 +236,7 @@ func listen() {
 }
 
 func contentToChan() {
-	i := types.Item{}
+	i := common.Item{}
 	open()
 	defer close()
 
@@ -252,13 +252,13 @@ func contentToChan() {
 	fmt.Println("adding content")
 
 	i.Text = findText(i.Values)
-	i.Type = types.WINDOWS
+	i.Type = common.WINDOWS
 
 	ch <- &i
 }
 
-func findText(values []types.Value) string {
-	STRINGi := slices.IndexFunc(values, func(v types.Value) bool {
+func findText(values []common.Value) string {
+	STRINGi := slices.IndexFunc(values, func(v common.Value) bool {
 		return v.Format == "CF_TEXT"
 	})
 	if STRINGi != -1 {
@@ -268,7 +268,7 @@ func findText(values []types.Value) string {
 	return ""
 }
 
-func addValue(i *types.Item, f uintptr) {
+func addValue(i *common.Item, f uintptr) {
 	//fmt.Printf("%v\n", f)
 
 	var formatName string
@@ -354,7 +354,7 @@ func addValue(i *types.Item, f uintptr) {
 	defer globalUnlock.Call(ptr)
 	data := unsafe.Slice((*byte)(unsafe.Pointer(mem)), size)
 
-	i.Values = append(i.Values, types.Value{Format: formatName, Data: data})
+	i.Values = append(i.Values, common.Value{Format: formatName, Data: data})
 }
 
 func open() error {
@@ -385,7 +385,7 @@ func getWinFormat(f string) uint32 {
 	return 1
 }
 
-func setValueToCB(v types.Value) {
+func setValueToCB(v common.Value) {
 	hMem, _, _ := globalAlloc.Call(GMEM_MOVEABLE, uintptr(len(v.Data)))
 	if hMem == 0 {
 		panic("failed to allocate global memory")

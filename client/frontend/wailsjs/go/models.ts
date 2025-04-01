@@ -1,4 +1,4 @@
-export namespace types {
+export namespace common {
 	
 	export class Value {
 	    Format: string;

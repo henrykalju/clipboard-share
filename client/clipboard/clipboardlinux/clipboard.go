@@ -5,7 +5,7 @@ package clipboardlinux
 import (
 	"client/clipboard/clipboardlinux/listener"
 	"client/clipboard/clipboardlinux/writer"
-	"client/types"
+	"client/common"
 )
 
 type ClipboardLinux struct {
@@ -26,10 +26,10 @@ func (c *ClipboardLinux) Init() {
 	writer.SetListener(l)
 }
 
-func (c *ClipboardLinux) GetChan() chan *types.Item {
+func (c *ClipboardLinux) GetChan() chan *common.Item {
 	return listener.GetChan()
 }
 
-func (c *ClipboardLinux) Write(i types.Item) {
+func (c *ClipboardLinux) Write(i common.Item) {
 	writer.Write(i)
 }

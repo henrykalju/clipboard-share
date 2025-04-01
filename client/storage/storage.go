@@ -2,7 +2,7 @@ package storage
 
 import (
 	"bytes"
-	"client/types"
+	"client/common"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -23,7 +23,7 @@ type data struct {
 	Data   []byte
 }
 
-func SaveItem(i *types.Item) error {
+func SaveItem(i *common.Item) error {
 	si := storageItem{
 		Type:    i.Type.Text,
 		Content: i.Text,
@@ -51,7 +51,7 @@ func SaveItem(i *types.Item) error {
 	return nil
 }
 
-func GetItems() ([]types.ItemWithID, error) {
+func GetItems() ([]common.ItemWithID, error) {
 	resp, err := http.Get(BACKEND_URL)
 	if err != nil {
 		return nil, err
@@ -72,20 +72,20 @@ func GetItems() ([]types.ItemWithID, error) {
 		return nil, err
 	}
 
-	items := make([]types.ItemWithID, 0)
+	items := make([]common.ItemWithID, 0)
 	for _, v := range sitems {
-		i := types.ItemWithID{
+		i := common.ItemWithID{
 			ID: v.ID,
-			//Type: types.GetType(v.Type),
-			Item: types.Item{
-				Type:   types.GetType(v.Type),
+			//Type: common.GetType(v.Type),
+			Item: common.Item{
+				Type:   common.GetType(v.Type),
 				Text:   v.Content,
-				Values: []types.Value{},
+				Values: []common.Value{},
 			},
 		}
 
 		for _, v2 := range v.Data {
-			i.Values = append(i.Values, types.Value{
+			i.Values = append(i.Values, common.Value{
 				Format: v2.Format,
 				Data:   v2.Data,
 			})

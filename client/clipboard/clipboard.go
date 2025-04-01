@@ -1,9 +1,9 @@
 package clipboard
 
-import "client/types"
+import "client/common"
 
 type Clipboard interface {
 	Init()
-	GetChan() chan *types.Item
-	Write(types.Item)
+	GetChan() chan *common.Item
+	Write(common.Item)
 }
