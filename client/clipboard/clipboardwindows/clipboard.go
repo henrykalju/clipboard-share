@@ -268,6 +268,10 @@ func findText(values []common.Value) string {
 	return ""
 }
 
+func forbiddenFormat(f string) bool {
+	return f == "EnterpriseDataProtectionId"
+}
+
 func addValue(i *common.Item, f uintptr) {
 	//fmt.Printf("%v\n", f)
 
@@ -337,7 +341,9 @@ func addValue(i *common.Item, f uintptr) {
 		formatName = syscall.UTF16ToString(formatNameW[:])
 	}
 
-	ptr, _, _ := getClipboardData.Call(f)
+	if forbiddenFormat(formatName) {
+		return
+	}
 	if ptr == 0 {
 		panic("ptr = 0")
 	}
