@@ -41,6 +41,7 @@ func (c *ClipboardWindows) Init() {
 	getClipboardData = user32.MustFindProc("GetClipboardData")
 	enumClipboardFormats = user32.MustFindProc("EnumClipboardFormats")
 	getClipboardFormatName = user32.MustFindProc("GetClipboardFormatNameW")
+	registerClipboardFormat = user32.MustFindProc("RegisterClipboardFormatW")
 
 	// Register the window class
 	className, _ := syscall.UTF16PtrFromString("ClipboardListenerClass")
@@ -139,11 +140,12 @@ var (
 	openClipboard  *windows.Proc
 	closeClipboard *windows.Proc
 
-	emptyClipboard         *windows.Proc
-	setClipboardData       *windows.Proc
-	getClipboardData       *windows.Proc
-	enumClipboardFormats   *windows.Proc
-	getClipboardFormatName *windows.Proc
+	emptyClipboard          *windows.Proc
+	setClipboardData        *windows.Proc
+	getClipboardData        *windows.Proc
+	enumClipboardFormats    *windows.Proc
+	getClipboardFormatName  *windows.Proc
+	registerClipboardFormat *windows.Proc
 
 	hwnd uintptr
 )
@@ -390,20 +392,78 @@ func close() {
 		fmt.Printf("Error closing clipboard: %s\n", err.Error())
 	}
 }
-func getWinFormat(f string) uint32 {
-	switch f {
+func getWinFormat(formatName string) uint32 {
+	switch formatName {
+	case "CF_BITMAP":
+		return CF_BITMAP
+	case "CF_DIB":
+		return CF_DIB
+	case "CF_DIBV5":
+		return CF_DIBV5
+	case "CF_DIF":
+		return CF_DIF
+	case "CF_DSPBITMAP":
+		return CF_DSPBITMAP
+	case "CF_DSPENHMETAFILE":
+		return CF_DSPENHMETAFILE
+	case "CF_DSPMETAFILEPICT":
+		return CF_DSPMETAFILEPICT
+	case "CF_DSPTEXT":
+		return CF_DSPTEXT
+	case "CF_ENHMETAFILE":
+		return CF_ENHMETAFILE
+	case "CF_GDIOBJFIRST":
+		return CF_GDIOBJFIRST
+	case "CF_GDIOBJLAST":
+		return CF_GDIOBJLAST
+	case "CF_HDROP":
+		return CF_HDROP
+	case "CF_LOCALE":
+		return CF_LOCALE
+	case "CF_METAFILEPICT":
+		return CF_METAFILEPICT
+	case "CF_OEMTEXT":
+		return CF_OEMTEXT
+	case "CF_OWNERDISPLAY":
+		return CF_OWNERDISPLAY
+	case "CF_PALETTE":
+		return CF_PALETTE
+	case "CF_PENDATA":
+		return CF_PENDATA
+	case "CF_PRIVATEFIRST":
+		return CF_PRIVATEFIRST
+	case "CF_PRIVATELAST":
+		return CF_PRIVATELAST
+	case "CF_RIFF":
+		return CF_RIFF
+	case "CF_SYLK":
+		return CF_SYLK
 	case "CF_TEXT":
 		return CF_TEXT
+	case "CF_TIFF":
+		return CF_TIFF
 	case "CF_UNICODETEXT":
 		return CF_UNICODETEXT
+	case "CF_WAVE":
+		return CF_WAVE
 	}
 
-	// TODO add format registering
+	formatNameUTF16, err := windows.UTF16PtrFromString(formatName)
+	if err != nil {
+		return 0
+	}
 
-	return 1
+	f, _, err := registerClipboardFormat.Call(uintptr(unsafe.Pointer(formatNameUTF16)))
+	if !errors.Is(err, windows.ERROR_SUCCESS) {
+		panic(fmt.Errorf("unable to register clipboard format: %w", err))
+	}
+
+	return uint32(f)
 }
 
 func setValueToCB(v common.Value) {
+	format := getWinFormat(v.Format)
+
 	hMem, _, _ := globalAlloc.Call(GMEM_MOVEABLE, uintptr(len(v.Data)))
 	if hMem == 0 {
 		panic("failed to allocate global memory")
@@ -417,7 +477,7 @@ func setValueToCB(v common.Value) {
 	copy((*[1 << 30]byte)(unsafe.Pointer(ptr))[:len(v.Data)], v.Data)
 	globalUnlock.Call(hMem)
 
-	if r, _, _ := setClipboardData.Call(uintptr(getWinFormat(v.Format)), hMem); r == 0 {
+	if r, _, _ := setClipboardData.Call(uintptr(format), hMem); r == 0 {
 		panic("failed to set clipboard data")
 	}
 }
