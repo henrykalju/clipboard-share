@@ -82,8 +82,17 @@ func (c *ClipboardWindows) Init() {
 
 	text := "testing"
 	i := common.Item{
-		Text:   text,
-		Values: []common.Value{{Format: "CF_TEXT", Data: append([]byte(text), 0)}},
+		Text: text,
+		Values: []common.Value{
+			{
+				Format: "CF_TEXT",
+				Data:   append([]byte(text), 0),
+			},
+			{
+				Format: "HENRY_TEST",
+				Data:   []byte{1, 2, 3},
+			},
+		},
 	}
 
 	//if write first, and then listen, it works, else listening doesn't work
