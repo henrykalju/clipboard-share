@@ -358,11 +358,19 @@ func addValue(i *common.Item, f uintptr) {
 }
 
 func open() error {
+	for tries := range 5 {
 	_, _, err := openClipboard.Call(hwnd)
-	if !errors.Is(err, windows.ERROR_SUCCESS) {
-		fmt.Printf("Error opening clipboard: %s\n", err.Error())
+		if errors.Is(err, windows.ERROR_SUCCESS) {
+			fmt.Printf("Clipboard opened in %d tries\n", tries+1)
+			break
+		}
+		if tries == 4 {
+			fmt.Printf("Couldn't open clipboard in 5 tries: %s\n", err.Error())
 		panic(err)
 	}
+		//time.Sleep
+	}
+
 	return nil
 }
 
