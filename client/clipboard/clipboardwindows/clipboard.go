@@ -3,6 +3,7 @@
 package clipboardwindows
 
 import (
+	"bytes"
 	"client/common"
 	"errors"
 	"fmt"
@@ -84,7 +85,7 @@ func (c *ClipboardWindows) Init() {
 		Values: []common.Value{{Format: "CF_TEXT", Data: append([]byte(text), 0)}},
 	}
 
-	//if write first, and then listen, it works
+	//if write first, and then listen, it works, else listening doesn't work
 	c.Write(i)
 
 	go listen()
@@ -262,7 +263,7 @@ func findText(values []common.Value) string {
 		return v.Format == "CF_TEXT"
 	})
 	if STRINGi != -1 {
-		return string(values[STRINGi].Data[:len(values[STRINGi].Data)-1])
+		return string(bytes.SplitN(values[STRINGi].Data, []byte{0}, 2)[0])
 	}
 
 	return ""
@@ -344,8 +345,11 @@ func addValue(i *common.Item, f uintptr) {
 	if forbiddenFormat(formatName) {
 		return
 	}
+
+	ptr, _, err := getClipboardData.Call(f)
 	if ptr == 0 {
-		panic("ptr = 0")
+		fmt.Printf("Error getting clipboard data: %s\n", err.Error())
+		panic(fmt.Sprintf("ptr = 0, f = %d, formatName = %s", f, formatName))
 	}
 
 	size, _, _ := globalSize.Call(ptr)
@@ -365,15 +369,15 @@ func addValue(i *common.Item, f uintptr) {
 
 func open() error {
 	for tries := range 5 {
-	_, _, err := openClipboard.Call(hwnd)
+		_, _, err := openClipboard.Call(hwnd)
 		if errors.Is(err, windows.ERROR_SUCCESS) {
 			fmt.Printf("Clipboard opened in %d tries\n", tries+1)
 			break
 		}
 		if tries == 4 {
 			fmt.Printf("Couldn't open clipboard in 5 tries: %s\n", err.Error())
-		panic(err)
-	}
+			panic(err)
+		}
 		//time.Sleep
 	}
 
@@ -383,7 +387,7 @@ func open() error {
 func close() {
 	_, _, err := closeClipboard.Call()
 	if !errors.Is(err, windows.ERROR_SUCCESS) {
-		fmt.Printf("Error opening clipboard: %s\n", err.Error())
+		fmt.Printf("Error closing clipboard: %s\n", err.Error())
 	}
 }
 func getWinFormat(f string) uint32 {
