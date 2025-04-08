@@ -106,8 +106,14 @@ func (c *ClipboardWindows) GetChan() chan *common.Item {
 }
 
 func (c *ClipboardWindows) Write(i common.Item) {
+	i, err := common.ConvertItem(i, common.WINDOWS)
+	if err != nil {
+		fmt.Printf("Error converting: %s\n", err.Error())
+		return
+	}
+
 	fmt.Printf("writing %v\n", i)
-	err := open()
+	err = open()
 	if err != nil {
 		panic(err)
 	}

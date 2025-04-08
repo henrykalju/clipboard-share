@@ -10,6 +10,7 @@ import "C"
 import (
 	"client/common"
 	"errors"
+	"fmt"
 	"unsafe"
 )
 
@@ -27,6 +28,11 @@ func Init() (uint64, error) {
 }
 
 func Write(i common.Item) {
+	i, err := common.ConvertItem(i, common.X11)
+	if err != nil {
+		fmt.Printf("Error converting: %s\n", err.Error())
+		return
+	}
 	C.set_clipboard_item(ItemGoToC(i))
 }
 

@@ -2,6 +2,7 @@ package common
 
 import (
 	"errors"
+	"fmt"
 	"slices"
 )
 
@@ -18,7 +19,7 @@ func ConvertItem(item Item, to Type) (Item, error) {
 		return convertWindowsToX11(item)
 	}
 
-	return item, nil
+	return item, fmt.Errorf("cannot convert from type %s to %s", item.Type.Text, to.Text)
 }
 
 func convertX11ToWindows(item Item) (Item, error) {
