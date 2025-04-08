@@ -50,6 +50,7 @@ func getItemWithDataByIdAndPerson(itemID int32, personID int32) (ItemWithData, e
 		return r, err
 	}
 
+	r.Item = item
 	data, err := db.Q.GetDataByItem(ctx, item.ID)
 	if err != nil {
 		return r, err

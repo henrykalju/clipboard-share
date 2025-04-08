@@ -9,6 +9,11 @@ GET {{baseUrl}}/health
 GET {{baseUrl}}/items
 person_id: 1
 
+### Get user's item with data by ID
+# @name GetItemWithDataByID
+GET {{baseUrl}}/items/33
+person_id: 1
+
 ### Add a new clipboard item
 # @name AddNewItem
 POST {{baseUrl}}/items

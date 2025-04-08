@@ -114,9 +114,23 @@ func GetItemByID(id int32) (common.Item, error) {
 		return i, err
 	}
 
-	err = json.Unmarshal(body, &i)
+	var si storageItem
+	err = json.Unmarshal(body, &si)
 	if err != nil {
 		return i, err
+	}
+
+	i = common.Item{
+		Type:   common.GetType(si.Type),
+		Text:   si.Content,
+		Values: []common.Value{},
+	}
+
+	for _, v2 := range si.Data {
+		i.Values = append(i.Values, common.Value{
+			Format: v2.Format,
+			Data:   v2.Data,
+		})
 	}
 
 	return i, nil
