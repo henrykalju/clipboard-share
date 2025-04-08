@@ -17,7 +17,7 @@ var CB = "asd"
 // App struct
 type App struct {
 	ctx     context.Context
-	cbChan  chan *common.Item
+	c       clipboard.Clipboard
 	history []common.Item
 }
 
@@ -31,10 +31,9 @@ func NewApp() *App {
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 
-	c := clipboard.GetCB()
-	c.Init()
-	//c.Write(common.Item{Text: "test", Values: []common.Value{{Format: "STRING", Data: []byte("test\n")}}})
-	a.cbChan = c.GetChan()
+	a.c = clipboard.GetCB()
+	a.c.Init()
+
 	go a.startListeningForClipboard()
 
 	a.history = make([]common.Item, 0)
@@ -53,7 +52,7 @@ func (a *App) GetHistory() []common.ItemWithID {
 func (a *App) startListeningForClipboard() {
 	for {
 		select {
-		case i := <-a.cbChan:
+		case i := <-a.c.GetChan():
 			err := storage.SaveItem(i)
 			if err != nil {
 				fmt.Printf("Error saving item to storage: %s\n", err.Error())
