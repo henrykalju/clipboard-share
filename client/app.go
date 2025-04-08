@@ -52,7 +52,7 @@ func (a *App) GetHistory() []common.ItemWithID {
 func (a *App) WriteToCB(id int32) {
 	i, err := storage.GetItemByID(id)
 	if err != nil {
-		fmt.Printf("Erorr getting item with id %d: %s\n", id, err.Error())
+		fmt.Printf("Error getting item with id %d: %s\n", id, err.Error())
 		return
 	}
 
