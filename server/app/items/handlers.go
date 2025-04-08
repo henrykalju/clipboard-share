@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 )
 
 func GetAllItems(w http.ResponseWriter, r *http.Request) {
@@ -27,6 +28,43 @@ func GetAllItems(w http.ResponseWriter, r *http.Request) {
 	response, err := json.Marshal(&items)
 	if err != nil {
 		fmt.Printf("Error marshalling items into response: %s\n", err.Error())
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	_, err = w.Write(response)
+	if err != nil {
+		fmt.Printf("Error writing response: %s\n", err.Error())
+	}
+}
+
+func GetItemByID(w http.ResponseWriter, r *http.Request) {
+	/*personIdS := r.Header.Get("person_id")
+	personId64, err := strconv.ParseInt(personIdS, 10, 32)
+	if err != nil {
+		fmt.Printf("Error parsing person_id: %s\n", err.Error())
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}*/
+	personId64 := 1
+
+	idString := r.PathValue("id")
+	id64, err := strconv.ParseInt(idString, 10, 32)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	i, err := getItemWithDataByIdAndPerson(int32(id64), int32(personId64))
+	if err != nil {
+		fmt.Printf("Error getting item with data by id and person: %s\n", err.Error())
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	response, err := json.Marshal(&i)
+	if err != nil {
+		fmt.Printf("Error marshalling item with data into response: %s\n", err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

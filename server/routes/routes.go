@@ -11,6 +11,7 @@ func NewRouter() *http.ServeMux {
 	r.HandleFunc("/health", health)
 
 	r.HandleFunc("GET /items", items.GetAllItems)
+	r.HandleFunc("GET /items/{id}", items.GetItemByID)
 	r.HandleFunc("POST /items", items.AddItem)
 
 	return r

@@ -37,6 +37,29 @@ func getItemsWithDataByPerson(personID int32) ([]ItemWithData, error) {
 	return r, nil
 }
 
+func getItemWithDataByIdAndPerson(itemID int32, personID int32) (ItemWithData, error) {
+	ctx := context.Background()
+	r := ItemWithData{}
+
+	params := db.GetItemByIdAndPersonParams{
+		ID:       itemID,
+		PersonID: personID,
+	}
+	item, err := db.Q.GetItemByIdAndPerson(ctx, params)
+	if err != nil {
+		return r, err
+	}
+
+	data, err := db.Q.GetDataByItem(ctx, item.ID)
+	if err != nil {
+		return r, err
+	}
+
+	r.Data = data
+
+	return r, nil
+}
+
 func (i ItemWithData) validateInsert() error {
 	if len(i.Content) == 0 {
 		return errors.New("item must have content string")

@@ -4,6 +4,13 @@ select
 from item
 where person_id = $1;
 
+-- name: GetItemByIdAndPerson :one
+select
+    *
+from item
+where person_id = $1
+    and id = $2;
+
 -- name: GetDataByItem :many
 select
     *

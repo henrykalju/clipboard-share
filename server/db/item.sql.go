@@ -51,6 +51,32 @@ func (q *Queries) GetDataByItem(ctx context.Context, itemID int32) ([]Datum, err
 	return items, nil
 }
 
+const getItemByIdAndPerson = `-- name: GetItemByIdAndPerson :one
+select
+    id, person_id, type, content, created_at
+from item
+where person_id = $1
+    and id = $2
+`
+
+type GetItemByIdAndPersonParams struct {
+	PersonID int32
+	ID       int32
+}
+
+func (q *Queries) GetItemByIdAndPerson(ctx context.Context, arg GetItemByIdAndPersonParams) (Item, error) {
+	row := q.db.QueryRow(ctx, getItemByIdAndPerson, arg.PersonID, arg.ID)
+	var i Item
+	err := row.Scan(
+		&i.ID,
+		&i.PersonID,
+		&i.Type,
+		&i.Content,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const getItemsByPerson = `-- name: GetItemsByPerson :many
 select
     id, person_id, type, content, created_at
