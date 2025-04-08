@@ -3,3 +3,5 @@
 import {common} from '../models';
 
 export function GetHistory():Promise<Array<common.ItemWithID>>;
+
+export function WriteToCB(arg1:number):Promise<void>;

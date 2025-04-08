@@ -5,3 +5,7 @@
 export function GetHistory() {
   return window['go']['main']['App']['GetHistory']();
 }
+
+export function WriteToCB(arg1) {
+  return window['go']['main']['App']['WriteToCB'](arg1);
+}

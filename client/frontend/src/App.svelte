@@ -1,6 +1,6 @@
 <script lang="ts">
   import {EventsOn} from '../wailsjs/runtime'
-  import {GetHistory} from '../wailsjs/go/main/App'
+  import {GetHistory, WriteToCB} from '../wailsjs/go/main/App'
   import {common} from '../wailsjs/go/models'
 
   let items: common.ItemWithID[] = $state([])
@@ -10,16 +10,20 @@
     console.log("cb updated")
     GetHistory().then(result => items = result.reverse())
   }
+
+  function handleClick(item: common.ItemWithID) {
+    WriteToCB(item.ID)
+  }
   
   EventsOn("CB_UPDATE_EVENT", cbUpdate)
 </script>
 
 <main>
   <ul>
-    {#each items as { ID, Text }}
-      <li key={ID}>
-        {Text}
-        <span class="tooltip-text">{Text}</span>
+    {#each items as item}
+      <li key={item.ID} on:click={() => handleClick(item)}>
+        {item.Text}
+        <span class="tooltip-text">{item.Text}</span>
       </li>
     {/each}
   </ul>
