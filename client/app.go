@@ -49,6 +49,16 @@ func (a *App) GetHistory() []common.ItemWithID {
 	return r
 }
 
+func (a *App) WriteToCB(id int32) {
+	i, err := storage.GetItemByID(id)
+	if err != nil {
+		fmt.Printf("Erorr getting item with id %d: %s\n", id, err.Error())
+		return
+	}
+
+	a.c.Write(i)
+}
+
 func (a *App) startListeningForClipboard() {
 	for {
 		select {

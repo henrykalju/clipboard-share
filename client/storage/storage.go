@@ -96,3 +96,28 @@ func GetItems() ([]common.ItemWithID, error) {
 
 	return items, nil
 }
+
+func GetItemByID(id int32) (common.Item, error) {
+	var i common.Item
+
+	resp, err := http.Get(fmt.Sprintf("%s/%d", BACKEND_URL, id))
+	if err != nil {
+		return i, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return i, fmt.Errorf("error getting items from storage, resp code: %d", resp.StatusCode)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return i, err
+	}
+
+	err = json.Unmarshal(body, &i)
+	if err != nil {
+		return i, err
+	}
+
+	return i, nil
+}
