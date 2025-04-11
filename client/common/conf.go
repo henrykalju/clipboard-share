@@ -18,7 +18,7 @@ var conf *viper.Viper
 
 const (
 	BACKEND_URL_KEY     = "BACKEND_URL"
-	BACKEND_URL_DEFAULT = "localhost:8080"
+	BACKEND_URL_DEFAULT = "http:://localhost:8080"
 
 	USERNAME_KEY = "USERNAME"
 	PASSWORD_KEY = "PASSWORD"
