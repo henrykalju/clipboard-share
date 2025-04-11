@@ -7,7 +7,6 @@
   GetHistory().then(result => items = result.reverse())
 
   function cbUpdate(...data: any): void {
-    console.log("cb updated")
     GetHistory().then(result => items = result.reverse())
   }
 
