@@ -33,18 +33,18 @@
   }
 
   async function openModal() {
-    let c: common.Config
-    GetConfig().then(resp => c = resp).catch(err => alert(err));
-    
-    url = c.BackendUrl;
-    username = c.Username;
-    password = c.Password;
-
-    showModal = true;
+    GetConfig().then(c => {
+      url = c.BackendUrl;
+      username = c.Username;
+      password = c.Password;
+  
+      showModal = true;
+    }).catch(err => alert(err));
   }
 </script>
 
 <main>
+  <button onclick={cbUpdate}>🔄 Refresh</button>
   <button onclick={openModal}>⚙️ Settings</button>
   {#if showModal}
     <div role="button" tabindex="0" class="modal-backdrop" onclick={() => showModal = false} onkeydown={(e) => {if (e.key === "Escape") showModal = false;}}>
