@@ -1,6 +1,6 @@
 <script lang="ts">
   import {EventsOn} from '../wailsjs/runtime'
-  import {GetHistory, WriteToCB} from '../wailsjs/go/main/App'
+  import {GetHistory, WriteToCB, GetConfig, UpdateConfig} from '../wailsjs/go/main/App'
   import {common} from '../wailsjs/go/models'
 
   let items: common.ItemWithID[] = $state([])

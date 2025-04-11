@@ -29,6 +29,8 @@ func NewApp() *App {
 // startup is called when the app starts. The context is saved
 // so we can call the runtime methods
 func (a *App) startup(ctx context.Context) {
+	common.InitConfig()
+
 	a.ctx = ctx
 
 	a.c = clipboard.GetCB()
@@ -70,4 +72,12 @@ func (a *App) startListeningForClipboard() {
 			runtime.EventsEmit(a.ctx, CB_UPDATE_EVENT)
 		}
 	}
+}
+
+func (a *App) UpdateConfig(conf common.Config) {
+	common.SetConf(conf)
+}
+
+func (a *App) GetConfig() common.Config {
+	return common.GetConf()
 }

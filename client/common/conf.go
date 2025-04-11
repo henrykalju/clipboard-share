@@ -7,6 +7,10 @@ import (
 	"github.com/spf13/viper"
 )
 
+type Config struct {
+	BackendUrl string
+}
+
 var conf *viper.Viper
 
 const (
@@ -17,7 +21,7 @@ const (
 	CONF_FILE = "config.json"
 )
 
-func Init() {
+func InitConfig() {
 	conf = viper.New()
 
 	setDefaults(conf)
@@ -38,15 +42,17 @@ func Init() {
 	}
 }
 
-func GetBackendUrl() string {
-	return conf.GetString(BACKEND_URL_KEY)
-}
-
-func SetBackendUrl(newUrl string) error {
-	conf.Set(BACKEND_URL_KEY, newUrl)
-	return conf.WriteConfig()
-}
-
 func setDefaults(c *viper.Viper) {
 	c.SetDefault(BACKEND_URL_KEY, BACKEND_URL_DEFAULT)
+}
+
+func GetConf() Config {
+	return Config{
+		BackendUrl: conf.GetString(BACKEND_URL_KEY),
+	}
+}
+
+func SetConf(c Config) error {
+	conf.Set(BACKEND_URL_KEY, c.BackendUrl)
+	return conf.WriteConfig()
 }
