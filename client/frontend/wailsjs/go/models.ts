@@ -2,6 +2,8 @@ export namespace common {
 	
 	export class Config {
 	    BackendUrl: string;
+	    Username: string;
+	    Password: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new Config(source);
@@ -10,6 +12,8 @@ export namespace common {
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.BackendUrl = source["BackendUrl"];
+	        this.Username = source["Username"];
+	        this.Password = source["Password"];
 	    }
 	}
 	export class Value {

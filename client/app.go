@@ -74,8 +74,8 @@ func (a *App) startListeningForClipboard() {
 	}
 }
 
-func (a *App) UpdateConfig(conf common.Config) {
-	common.SetConf(conf)
+func (a *App) UpdateConfig(conf common.Config) error {
+	return common.SetConf(conf)
 }
 
 func (a *App) GetConfig() common.Config {
