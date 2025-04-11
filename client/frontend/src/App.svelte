@@ -4,14 +4,14 @@
   import {common} from '../wailsjs/go/models'
 
   let items: common.ItemWithID[] = $state([])
-  GetHistory().then(result => items = result.reverse())
+  GetHistory().then(result => items = result.reverse()).catch(err => alert(err));
 
   function cbUpdate(...data: any): void {
-    GetHistory().then(result => items = result.reverse())
+    GetHistory().then(result => items = result.reverse()).catch(err => alert(err));
   }
 
   function handleClick(item: common.ItemWithID) {
-    WriteToCB(item.ID)
+    WriteToCB(item.ID).catch(err => alert(err));
   }
   
   EventsOn("CB_UPDATE_EVENT", cbUpdate)
@@ -33,7 +33,7 @@
   }
 
   async function openModal() {
-    let c: common.Config = await GetConfig();
+    let c: common.Config = await GetConfig().catch(err => alert(err));
     
     url = c.BackendUrl;
     username = c.Username;
