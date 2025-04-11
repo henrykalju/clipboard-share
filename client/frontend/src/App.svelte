@@ -33,7 +33,8 @@
   }
 
   async function openModal() {
-    let c: common.Config = await GetConfig().catch(err => alert(err));
+    let c: common.Config
+    GetConfig().then(resp => c = resp).catch(err => alert(err));
     
     url = c.BackendUrl;
     username = c.Username;

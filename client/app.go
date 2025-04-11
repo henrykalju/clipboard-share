@@ -50,13 +50,12 @@ func (a *App) startup(ctx context.Context) {
 	a.history = append(a.history, common.Item{Text: "test", Values: []common.Value{{Format: "STRING", Data: []byte("test\n")}}})
 }
 
-func (a *App) GetHistory() []common.ItemWithID {
+func (a *App) GetHistory() ([]common.ItemWithID, error) {
 	r, err := storage.GetItems()
 	if err != nil {
-		fmt.Printf("Error getting items from storage: %s\n", err.Error())
-		return nil
+		return nil, fmt.Errorf("error getting items from storage: %w", err)
 	}
-	return r
+	return r, nil
 }
 
 func (a *App) WriteToCB(id int32) error {
