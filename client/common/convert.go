@@ -33,7 +33,7 @@ func convertX11ToWindows(item Item) (Item, error) {
 	textI := slices.IndexFunc(item.Values, func(v Value) bool {
 		return v.Format == "STRING"
 	})
-	if textI == -1 {
+	if textI != -1 {
 		v := Value{
 			Format: "CF_TEXT",
 			Data:   append(item.Values[textI].Data, 0),
@@ -59,9 +59,9 @@ func convertWindowsToX11(item Item) (Item, error) {
 	textI := slices.IndexFunc(item.Values, func(v Value) bool {
 		return v.Format == "CF_TEXT"
 	})
-	if textI == -1 {
+	if textI != -1 {
 		v := Value{
-			Format: "CF_TEXT",
+			Format: "STRING",
 			Data:   item.Values[textI].Data[:len(item.Values[textI].Data)-1],
 		}
 		i.Values = append(i.Values, v)
