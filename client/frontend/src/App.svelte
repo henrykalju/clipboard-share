@@ -7,6 +7,7 @@
   GetHistory().then(result => items = result.reverse()).catch(err => alert(err));
 
   function cbUpdate(...data: any): void {
+    items = [];
     GetHistory().then(result => items = result.reverse()).catch(err => alert(err));
   }
 

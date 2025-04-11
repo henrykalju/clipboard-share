@@ -9,8 +9,6 @@ import (
 	"net/http"
 )
 
-const BACKEND_URL = "http://localhost:8080/items"
-
 type storageItem struct {
 	ID      int32
 	Type    string
@@ -41,7 +39,7 @@ func SaveItem(i *common.Item) error {
 		return err
 	}
 
-	resp, err := http.Post(BACKEND_URL, "application/json", bytes.NewBuffer(body))
+	resp, err := http.Post(common.GetBackendUrl()+"/items", "application/json", bytes.NewBuffer(body))
 	if err != nil {
 		return err
 	}
@@ -52,7 +50,7 @@ func SaveItem(i *common.Item) error {
 }
 
 func GetItems() ([]common.ItemWithID, error) {
-	resp, err := http.Get(BACKEND_URL)
+	resp, err := http.Get(common.GetBackendUrl() + "/items")
 	if err != nil {
 		return nil, err
 	}
@@ -100,7 +98,7 @@ func GetItems() ([]common.ItemWithID, error) {
 func GetItemByID(id int32) (common.Item, error) {
 	var i common.Item
 
-	resp, err := http.Get(fmt.Sprintf("%s/%d", BACKEND_URL, id))
+	resp, err := http.Get(fmt.Sprintf("%s/items/%d", common.GetBackendUrl(), id))
 	if err != nil {
 		return i, err
 	}

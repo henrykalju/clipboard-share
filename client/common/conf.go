@@ -95,3 +95,7 @@ func SetConf(c Config) error {
 	}
 	return nil
 }
+
+func GetBackendUrl() string {
+	return conf.GetString(BACKEND_URL_KEY)
+}
