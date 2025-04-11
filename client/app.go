@@ -29,12 +29,20 @@ func NewApp() *App {
 // startup is called when the app starts. The context is saved
 // so we can call the runtime methods
 func (a *App) startup(ctx context.Context) {
-	common.InitConfig()
+	err := common.InitConfig()
+	if err != nil {
+		fmt.Printf("Error initing config: %s\n", err.Error())
+		panic("Error initing config")
+	}
 
 	a.ctx = ctx
 
 	a.c = clipboard.GetCB()
-	a.c.Init()
+	err = a.c.Init()
+	if err != nil {
+		fmt.Printf("Error initing clipboard: %s\n", err.Error())
+		panic("Error initing clipboard")
+	}
 
 	go a.startListeningForClipboard()
 
@@ -51,14 +59,17 @@ func (a *App) GetHistory() []common.ItemWithID {
 	return r
 }
 
-func (a *App) WriteToCB(id int32) {
+func (a *App) WriteToCB(id int32) error {
 	i, err := storage.GetItemByID(id)
 	if err != nil {
-		fmt.Printf("Error getting item with id %d: %s\n", id, err.Error())
-		return
+		return fmt.Errorf("error getting item with id %d: %w", id, err)
 	}
 
-	a.c.Write(i)
+	err = a.c.Write(i)
+	if err != nil {
+		return fmt.Errorf("error writing to clipboard: %w", err)
+	}
+	return nil
 }
 
 func (a *App) startListeningForClipboard() {
@@ -75,7 +86,11 @@ func (a *App) startListeningForClipboard() {
 }
 
 func (a *App) UpdateConfig(conf common.Config) error {
-	return common.SetConf(conf)
+	err := common.SetConf(conf)
+	if err != nil {
+		fmt.Printf("Error updating conf: %s\n", err.Error())
+	}
+	return err
 }
 
 func (a *App) GetConfig() common.Config {

@@ -17,7 +17,7 @@ import (
 type ClipboardWindows struct {
 }
 
-func (c *ClipboardWindows) Init() {
+func (c *ClipboardWindows) Init() error {
 	user32 = windows.MustLoadDLL("user32.dll")
 	procRegisterClass = user32.MustFindProc("RegisterClassW")
 	procCreateWindowEx = user32.MustFindProc("CreateWindowExW")
@@ -54,8 +54,7 @@ func (c *ClipboardWindows) Init() {
 
 	ret, _, err := procRegisterClass.Call(uintptr(unsafe.Pointer(&wc)))
 	if ret == 0 {
-		fmt.Println("Error registering class:", err)
-		return
+		return fmt.Errorf("error registering class: %w", err)
 	}
 
 	windowName, _ := syscall.UTF16PtrFromString("Clipboard Listener")
@@ -69,15 +68,13 @@ func (c *ClipboardWindows) Init() {
 		0, 0, 0, 0,
 	)
 	if hwnd == 0 {
-		fmt.Println("Error creating window:", err)
-		return
+		return fmt.Errorf("error creating window: %w", err)
 	}
 
 	// Register for clipboard updates
 	ret, _, err = procAddClipboardListener.Call(hwnd)
 	if ret == 0 {
-		fmt.Println("Error registering clipboard listener:", err)
-		return
+		return fmt.Errorf("error registering clipboard listener: %w", err)
 	}
 
 	text := "testing"
@@ -99,32 +96,32 @@ func (c *ClipboardWindows) Init() {
 	c.Write(i)
 
 	go listen()
+	return nil
 }
 
 func (c *ClipboardWindows) GetChan() chan *common.Item {
 	return ch
 }
 
-func (c *ClipboardWindows) Write(i common.Item) {
+func (c *ClipboardWindows) Write(i common.Item) error {
 	i, err := common.ConvertItem(i, common.WINDOWS)
 	if err != nil {
-		fmt.Printf("Error converting: %s\n", err.Error())
-		return
+		return fmt.Errorf("error converting: %w", err)
 	}
 
 	fmt.Printf("writing %v\n", i)
 	err = open()
 	if err != nil {
-		panic(err)
+		return fmt.Errorf("error opening clipboard: %w", err)
 	}
 	defer close()
 
 	ok, _, err := emptyClipboard.Call()
 	if !errors.Is(err, windows.ERROR_SUCCESS) {
-		panic(fmt.Errorf("error emptying cb: %w", err))
+		return fmt.Errorf("error emptying cb: %w", err)
 	}
 	if ok == 0 {
-		panic("error emptying clipboard")
+		return fmt.Errorf("error emptying clipboard")
 	}
 
 	fmt.Println("adding values")
@@ -132,6 +129,7 @@ func (c *ClipboardWindows) Write(i common.Item) {
 		setValueToCB(v)
 	}
 	fmt.Println("values added")
+	return nil
 }
 
 // TODO add if getClipboardOwner == hwnd, dont look at it
@@ -290,7 +288,7 @@ func forbiddenFormat(f string) bool {
 	return f == "EnterpriseDataProtectionId"
 }
 
-func addValue(i *common.Item, f uintptr) {
+func addValue(i *common.Item, f uintptr) error {
 	//fmt.Printf("%v\n", f)
 
 	var formatName string
@@ -351,37 +349,36 @@ func addValue(i *common.Item, f uintptr) {
 		var formatNameW [256]uint16
 		ret, _, _ := getClipboardFormatName.Call(f, uintptr(unsafe.Pointer(&formatNameW[0])), uintptr(len(formatNameW)))
 		if ret == 0 {
-			//panic("failed to get format name")
-			fmt.Println("failed to get format name")
-			return
+			return fmt.Errorf("error getting format name")
 		}
 
 		formatName = syscall.UTF16ToString(formatNameW[:])
 	}
 
 	if forbiddenFormat(formatName) {
-		return
+		fmt.Printf("Skipping forbidden format: %s\n", formatName)
+		return nil
 	}
 
 	ptr, _, err := getClipboardData.Call(f)
 	if ptr == 0 {
-		fmt.Printf("Error getting clipboard data: %s\n", err.Error())
-		panic(fmt.Sprintf("ptr = 0, f = %d, formatName = %s", f, formatName))
+		return fmt.Errorf("error getting clipboard data: ptr = 0, f = %d, formatName = %s, err = %w", f, formatName, err)
 	}
 
 	size, _, _ := globalSize.Call(ptr)
 	if size == 0 {
-		panic("failed to get size")
+		return fmt.Errorf("error getting globalSize")
 	}
 
 	mem, _, _ := globalLock.Call(ptr)
 	if mem == 0 {
-		panic("failed to lock g mem")
+		return fmt.Errorf("error global locking")
 	}
 	defer globalUnlock.Call(ptr)
 	data := unsafe.Slice((*byte)(unsafe.Pointer(mem)), size)
 
 	i.Values = append(i.Values, common.Value{Format: formatName, Data: data})
+	return nil
 }
 
 func open() error {
@@ -392,10 +389,8 @@ func open() error {
 			break
 		}
 		if tries == 4 {
-			fmt.Printf("Couldn't open clipboard in 5 tries: %s\n", err.Error())
-			panic(err)
+			return fmt.Errorf("couldn't open clipboard in 5 tries: %w", err)
 		}
-		//time.Sleep
 	}
 
 	return nil
@@ -407,92 +402,97 @@ func close() {
 		fmt.Printf("Error closing clipboard: %s\n", err.Error())
 	}
 }
-func getWinFormat(formatName string) uint32 {
+func getWinFormat(formatName string) (uint32, error) {
 	switch formatName {
 	case "CF_BITMAP":
-		return CF_BITMAP
+		return CF_BITMAP, nil
 	case "CF_DIB":
-		return CF_DIB
+		return CF_DIB, nil
 	case "CF_DIBV5":
-		return CF_DIBV5
+		return CF_DIBV5, nil
 	case "CF_DIF":
-		return CF_DIF
+		return CF_DIF, nil
 	case "CF_DSPBITMAP":
-		return CF_DSPBITMAP
+		return CF_DSPBITMAP, nil
 	case "CF_DSPENHMETAFILE":
-		return CF_DSPENHMETAFILE
+		return CF_DSPENHMETAFILE, nil
 	case "CF_DSPMETAFILEPICT":
-		return CF_DSPMETAFILEPICT
+		return CF_DSPMETAFILEPICT, nil
 	case "CF_DSPTEXT":
-		return CF_DSPTEXT
+		return CF_DSPTEXT, nil
 	case "CF_ENHMETAFILE":
-		return CF_ENHMETAFILE
+		return CF_ENHMETAFILE, nil
 	case "CF_GDIOBJFIRST":
-		return CF_GDIOBJFIRST
+		return CF_GDIOBJFIRST, nil
 	case "CF_GDIOBJLAST":
-		return CF_GDIOBJLAST
+		return CF_GDIOBJLAST, nil
 	case "CF_HDROP":
-		return CF_HDROP
+		return CF_HDROP, nil
 	case "CF_LOCALE":
-		return CF_LOCALE
+		return CF_LOCALE, nil
 	case "CF_METAFILEPICT":
-		return CF_METAFILEPICT
+		return CF_METAFILEPICT, nil
 	case "CF_OEMTEXT":
-		return CF_OEMTEXT
+		return CF_OEMTEXT, nil
 	case "CF_OWNERDISPLAY":
-		return CF_OWNERDISPLAY
+		return CF_OWNERDISPLAY, nil
 	case "CF_PALETTE":
-		return CF_PALETTE
+		return CF_PALETTE, nil
 	case "CF_PENDATA":
-		return CF_PENDATA
+		return CF_PENDATA, nil
 	case "CF_PRIVATEFIRST":
-		return CF_PRIVATEFIRST
+		return CF_PRIVATEFIRST, nil
 	case "CF_PRIVATELAST":
-		return CF_PRIVATELAST
+		return CF_PRIVATELAST, nil
 	case "CF_RIFF":
-		return CF_RIFF
+		return CF_RIFF, nil
 	case "CF_SYLK":
-		return CF_SYLK
+		return CF_SYLK, nil
 	case "CF_TEXT":
-		return CF_TEXT
+		return CF_TEXT, nil
 	case "CF_TIFF":
-		return CF_TIFF
+		return CF_TIFF, nil
 	case "CF_UNICODETEXT":
-		return CF_UNICODETEXT
+		return CF_UNICODETEXT, nil
 	case "CF_WAVE":
-		return CF_WAVE
+		return CF_WAVE, nil
 	}
 
 	formatNameUTF16, err := windows.UTF16PtrFromString(formatName)
 	if err != nil {
-		return 0
+		return 0, fmt.Errorf("error getting UTF16PtrFromString: %w", err)
 	}
 
 	f, _, err := registerClipboardFormat.Call(uintptr(unsafe.Pointer(formatNameUTF16)))
 	if !errors.Is(err, windows.ERROR_SUCCESS) {
-		panic(fmt.Errorf("unable to register clipboard format: %w", err))
+		return 0, fmt.Errorf("error registering clipboard format: %w", err)
 	}
 
-	return uint32(f)
+	return uint32(f), nil
 }
 
-func setValueToCB(v common.Value) {
-	format := getWinFormat(v.Format)
+func setValueToCB(v common.Value) error {
+	format, err := getWinFormat(v.Format)
+	if err != nil {
+		return fmt.Errorf("error getting windows format nr: %w", err)
+	}
 
 	hMem, _, _ := globalAlloc.Call(GMEM_MOVEABLE, uintptr(len(v.Data)))
 	if hMem == 0 {
-		panic("failed to allocate global memory")
+		return fmt.Errorf("error allocating global memory")
 	}
 
 	ptr, _, _ := globalLock.Call(hMem)
 	if ptr == 0 {
-		panic("failed to lock global memory")
+		return fmt.Errorf("error locking global memory")
 	}
 
 	copy((*[1 << 30]byte)(unsafe.Pointer(ptr))[:len(v.Data)], v.Data)
 	globalUnlock.Call(hMem)
 
 	if r, _, _ := setClipboardData.Call(uintptr(format), hMem); r == 0 {
-		panic("failed to set clipboard data")
+		return fmt.Errorf("error setting clipbaord data")
 	}
+
+	return nil
 }

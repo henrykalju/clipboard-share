@@ -27,7 +27,7 @@ const (
 	CONF_FILE = "config.json"
 )
 
-func InitConfig() {
+func InitConfig() error {
 	conf = viper.New()
 
 	setDefaults(conf)
@@ -36,7 +36,7 @@ func InitConfig() {
 	conf.SetConfigType("json")
 	confPath, err := os.UserConfigDir()
 	if err != nil {
-		panic(err)
+		return fmt.Errorf("error getting user config dir: %w", err)
 	}
 	confPath = filepath.Join(confPath, CONF_PATH)
 	confFile := filepath.Join(confPath, CONF_FILE)
@@ -45,26 +45,30 @@ func InitConfig() {
 
 	if _, err := os.Stat(confFile); os.IsNotExist(err) {
 		if err := os.MkdirAll(confPath, 0755); err != nil {
-			panic(fmt.Errorf("error creating confPath: %w", err))
+			return fmt.Errorf("error creating confPath directory: %w", err)
 		}
 		file, err := os.Create(confFile)
 		if err != nil {
-			panic(fmt.Errorf("error creating config file: %w", err))
+			return fmt.Errorf("error creating config file: %w", err)
 		}
 		defer file.Close()
 		_, err = file.WriteString("{}")
 		if err != nil {
-			panic(fmt.Errorf("error writing empty to file: %w", err))
+			return fmt.Errorf("error writing {} to file: %w", err)
 		}
 	}
 
 	err = conf.ReadInConfig()
 	if err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
-			panic(fmt.Errorf("error reading config: %w", err))
+			return fmt.Errorf("error reading config: %w", err)
 		}
-		conf.WriteConfigAs(confFile)
+		err = conf.WriteConfigAs(confFile)
+		if err != nil {
+			return fmt.Errorf("error writing config file: %w", err)
+		}
 	}
+	return nil
 }
 
 func setDefaults(c *viper.Viper) {
@@ -85,5 +89,9 @@ func SetConf(c Config) error {
 	conf.Set(BACKEND_URL_KEY, c.BackendUrl)
 	conf.Set(USERNAME_KEY, c.Username)
 	conf.Set(PASSWORD_KEY, c.Password)
-	return conf.WriteConfig()
+	err := conf.WriteConfig()
+	if err != nil {
+		return fmt.Errorf("error updating conf: %w", err)
+	}
+	return nil
 }

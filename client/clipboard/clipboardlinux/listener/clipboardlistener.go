@@ -17,9 +17,9 @@ import (
 var c chan *common.Item
 
 func addItemToChan(i common.Item) {
-	if c == nil {
+	/*if c == nil {
 		panic(errors.New("adding item to nil channel"))
-	}
+	}*/
 	i.Type = common.X11
 	c <- &i
 }
@@ -35,7 +35,7 @@ func SetWriter(w uint64) {
 func Init() (uint64, error) {
 	w := C.Init()
 	if w == 0 {
-		panic(errors.New("error initing listener"))
+		return 0, errors.New("error initing listener")
 	}
 	go C.StartListening() // TODO: add return
 	c = make(chan *common.Item)

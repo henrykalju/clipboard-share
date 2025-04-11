@@ -21,19 +21,19 @@ func SetListener(l uint64) {
 func Init() (uint64, error) {
 	w := C.init_clipboard()
 	if w == 0 {
-		panic(errors.New("error initing writer"))
+		return 0, errors.New("error initing writer")
 	}
 	go C.start_clipboard()
 	return uint64(w), nil
 }
 
-func Write(i common.Item) {
+func Write(i common.Item) error {
 	i, err := common.ConvertItem(i, common.X11)
 	if err != nil {
-		fmt.Printf("Error converting: %s\n", err.Error())
-		return
+		return fmt.Errorf("error converting: %w", err)
 	}
 	C.set_clipboard_item(ItemGoToC(i))
+	return nil
 }
 
 func newCValue(format string, data []byte) C.Value {

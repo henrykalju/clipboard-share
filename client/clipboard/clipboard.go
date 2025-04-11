@@ -3,7 +3,7 @@ package clipboard
 import "client/common"
 
 type Clipboard interface {
-	Init()
+	Init() error
 	GetChan() chan *common.Item
-	Write(common.Item)
+	Write(common.Item) error
 }
