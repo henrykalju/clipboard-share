@@ -1,4 +1,8 @@
 <!DOCTYPE html>
+<head>
+    <meta charset="UTF-8">
+    <title>Clipboard Share</title>
+</head>
 <body>
     <div id="login-register">
         <label>
@@ -38,6 +42,10 @@
         return null;
     }
 
+    function CopyToClipboard(text) {
+        navigator.clipboard.writeText(text).catch(error => alert(error))
+    }
+
     function PopulateHistory() {
         fetch("/items", {
             headers: {"Authorization": GetCookie("basicauth")}
@@ -50,8 +58,14 @@
                             let hul = document.getElementById("history-ul")
                             hul.innerHTML = ""
                             for (let i = 0; i < result.length; i++) {
+                                let bu = document.createElement("button")
+                                bu.innerText = "📋"
+                                bu.addEventListener("click", () => {CopyToClipboard(result[i].Content)})
+
                                 let li = document.createElement("li")
                                 li.innerText = result[i].Content
+                                li.appendChild(bu)
+
                                 hul.appendChild(li)
                             }
                         }).catch(error => console.error(error))
@@ -102,7 +116,7 @@
                 console.log(response)
                 switch (response.status) {
                     case 200:
-                        document.cookie = `basicauth=${basicauth};${security} HttpOnly; SameSite=Strict; path=/; max-age=604800`
+                        document.cookie = `basicauth=${basicauth};${security} SameSite=Strict; path=/; max-age=604800`
                         ChangeToContentScreen()
                         break
                     case 400:
@@ -160,7 +174,7 @@
     }
 
     function Logout() {
-        document.cookie = `basicauth=;${security}; expires=Thu, 01 Jan 1970 00:00:00 UTC HttpOnly; SameSite=Strict; path=/; max-age=604800`
+        document.cookie = `basicauth=; expires=Thu, 01 Jan 1970 00:00:00 UTC HttpOnly; SameSite=Strict; path=/`
         ChangeToLoginScreen()
     }
 </script>
