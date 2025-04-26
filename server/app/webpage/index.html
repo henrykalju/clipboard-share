@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<body>
+    <div id="login-register">
+        <label>
+            Username:
+            <input id="username"/>
+        </label><br>
+        <label>
+            Password:
+            <input id="password" type="password"/>
+        </label><br>
+        <button onclick="Login()">Login</button><br>
+        <button onclick="Register()">Register</button>
+    </div>
+    <div id="content">
+        <button onclick="Logout()">Logout</button>
+        <button onclick="PopulateHistory()">refresh</button>
+        <div id="history-div">
+            <ul id="history-ul">
+
+            </ul>
+        </div>
+    </div>
+</body>
+
+<script>
+    let security = " Secure;"
+
+    function GetCookie(name) {
+        const nameEQ = `${name}=`;
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            let c = cookies[i].trim();
+            if (c.indexOf(nameEQ) === 0) {
+            return decodeURIComponent(c.substring(nameEQ.length, c.length));
+            }
+        }
+        return null;
+    }
+
+    function PopulateHistory() {
+        fetch("/items", {
+            headers: {"Authorization": GetCookie("basicauth")}
+        })
+            .then(response => {
+                console.log(response)
+                switch (response.status) {
+                    case 200:
+                        response.json().then(result => {
+                            let hul = document.getElementById("history-ul")
+                            hul.innerHTML = ""
+                            for (let i = 0; i < result.length; i++) {
+                                let li = document.createElement("li")
+                                li.innerText = result[i].Content
+                                hul.appendChild(li)
+                            }
+                        }).catch(error => console.error(error))
+                        break;
+                
+                    default:
+                        break;
+                }
+            })
+            .catch(error => console.error(error))
+    }
+
+    function ChangeToContentScreen() {
+        document.getElementById("login-register").style.display = "none"
+        document.getElementById("content").style.display = "block"
+
+        PopulateHistory()
+    }
+
+    function ChangeToLoginScreen() {
+        document.getElementById("login-register").style.display = "block"
+        document.getElementById("content").style.display = "none"        
+    }
+
+    if (GetCookie("basicauth")) {
+        ChangeToContentScreen()
+    } else {
+        ChangeToLoginScreen()
+    }
+
+    function GetUsernameFromInput() {
+        return document.getElementById("username").value
+    }
+
+    function GetPasswordFromInput() {
+        return document.getElementById("password").value
+    }
+
+    function Login() {
+        let username = GetUsernameFromInput()
+        let password = GetPasswordFromInput()
+        let basicauth = "Basic " + btoa(`${username}:${password}`)
+
+        fetch("/login", {
+            headers: {"Authorization": basicauth}
+        })
+            .then(response => {
+                console.log(response)
+                switch (response.status) {
+                    case 200:
+                        document.cookie = `basicauth=${basicauth};${security} HttpOnly; SameSite=Strict; path=/; max-age=604800`
+                        ChangeToContentScreen()
+                        break
+                    case 400:
+                        alert("Try logging in again")
+                        break
+                    case 401:
+                        alert("Password incorrect")
+                        break
+                    case 404:
+                        alert("Username not found")
+                        break
+                    case 500:
+                        alert("Server error")
+                        break
+                    default:
+                        alert("Something is not implemented")
+                        break
+                }
+            })
+            .catch(error => console.error(error))
+    }
+
+    function Register() {
+        let username = GetUsernameFromInput()
+        let password = GetPasswordFromInput()
+
+        fetch("/register", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                username: username,
+                password: password
+            })
+        })
+            .then(response => {
+                console.log(response)
+                switch (response.status) {
+                    case 200:
+                        alert("User registered")
+                        break
+                    case 400:
+                        alert("Try registering in again")
+                        break
+                    case 409:
+                        alert("Username taken")
+                        break
+                    case 500:
+                        alert("Server error")
+                        break
+                    default:
+                        break
+                }
+            })
+            .catch(error => console.error(error))
+    }
+
+    function Logout() {
+        document.cookie = `basicauth=;${security}; expires=Thu, 01 Jan 1970 00:00:00 UTC HttpOnly; SameSite=Strict; path=/; max-age=604800`
+        ChangeToLoginScreen()
+    }
+</script>

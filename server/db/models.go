@@ -69,6 +69,7 @@ type Item struct {
 }
 
 type Person struct {
-	ID   int32
-	Name string
+	ID       int32
+	Username string
+	Password string
 }
