@@ -39,7 +39,14 @@ func SaveItem(i *common.Item) error {
 		return err
 	}
 
-	resp, err := http.Post(common.GetBackendUrl()+"/items", "application/json", bytes.NewBuffer(body))
+	req, err := http.NewRequest(http.MethodPost, common.GetBackendUrl()+"/items", bytes.NewBuffer(body))
+	if err != nil {
+		return err
+	}
+	req.SetBasicAuth(common.GetConf().Username, common.GetConf().Password)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := (&http.Client{}).Do(req)
 	if err != nil {
 		return err
 	}
@@ -50,7 +57,13 @@ func SaveItem(i *common.Item) error {
 }
 
 func GetItems() ([]common.ItemWithID, error) {
-	resp, err := http.Get(common.GetBackendUrl() + "/items")
+	req, err := http.NewRequest(http.MethodGet, common.GetBackendUrl()+"/items", nil)
+	if err != nil {
+		return nil, err
+	}
+	req.SetBasicAuth(common.GetConf().Username, common.GetConf().Password)
+
+	resp, err := (&http.Client{}).Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +111,13 @@ func GetItems() ([]common.ItemWithID, error) {
 func GetItemByID(id int32) (common.Item, error) {
 	var i common.Item
 
-	resp, err := http.Get(fmt.Sprintf("%s/items/%d", common.GetBackendUrl(), id))
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/items/%d", common.GetBackendUrl(), id), nil)
+	if err != nil {
+		return i, err
+	}
+	req.SetBasicAuth(common.GetConf().Username, common.GetConf().Password)
+
+	resp, err := (&http.Client{}).Do(req)
 	if err != nil {
 		return i, err
 	}

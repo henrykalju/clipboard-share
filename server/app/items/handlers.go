@@ -1,6 +1,7 @@
 package items
 
 import (
+	"clipboard-share-server/app/person"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -9,16 +10,12 @@ import (
 )
 
 func GetAllItems(w http.ResponseWriter, r *http.Request) {
-	/*personIdS := r.Header.Get("person_id")
-	personId64, err := strconv.ParseInt(personIdS, 10, 32)
+	personID, err := person.GetPersonIDFromRequest(w, r)
 	if err != nil {
-		fmt.Printf("Error parsing person_id: %s\n", err.Error())
-		w.WriteHeader(http.StatusBadRequest)
 		return
-	}*/
-	personId64 := 1
+	}
 
-	items, err := getItemsWithDataByPerson(int32(personId64))
+	items, err := getItemsWithDataByPerson(personID)
 	if err != nil {
 		fmt.Printf("Error getting items: %s\n", err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
@@ -39,14 +36,10 @@ func GetAllItems(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetItemByID(w http.ResponseWriter, r *http.Request) {
-	/*personIdS := r.Header.Get("person_id")
-	personId64, err := strconv.ParseInt(personIdS, 10, 32)
+	personID, err := person.GetPersonIDFromRequest(w, r)
 	if err != nil {
-		fmt.Printf("Error parsing person_id: %s\n", err.Error())
-		w.WriteHeader(http.StatusBadRequest)
 		return
-	}*/
-	personId64 := 1
+	}
 
 	idString := r.PathValue("id")
 	id64, err := strconv.ParseInt(idString, 10, 32)
@@ -55,7 +48,7 @@ func GetItemByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	i, err := getItemWithDataByIdAndPerson(int32(id64), int32(personId64))
+	i, err := getItemWithDataByIdAndPerson(int32(id64), personID)
 	if err != nil {
 		fmt.Printf("Error getting item with data by id and person: %s\n", err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
@@ -76,6 +69,11 @@ func GetItemByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func AddItem(w http.ResponseWriter, r *http.Request) {
+	personID, err := person.GetPersonIDFromRequest(w, r)
+	if err != nil {
+		return
+	}
+
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		fmt.Printf("Error reading body: %s\n", err.Error())
@@ -91,7 +89,7 @@ func AddItem(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	item.PersonID = 1
+	item.PersonID = personID
 
 	item, err = insertItem(item)
 	if err != nil {
