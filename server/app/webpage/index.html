@@ -1,186 +1,257 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Clipboard Share</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-        }
-        #login-register, #content {
-            text-align: center;
-            margin-top: 100px;
-        }
-        #content {
-            display: none;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Clipboard Share</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    body {
+      background: #f4f6f8;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    #login-register, #content {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      width: 320px;
+      text-align: center;
+    }
+    h2 {
+      margin-bottom: 20px;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 1rem;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #2980b9;
+    }
+    #history-div {
+      margin-top: 20px;
+      max-height: 300px;
+      overflow-y: auto;
+      text-align: left;
+    }
+    li {
+      margin-bottom: 10px;
+      background: #f0f2f5;
+      padding: 10px;
+      border-radius: 5px;
+      list-style-type: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      word-break: break-word;
+    }
+    #content {
+      display: none;
+    }
+    .small-button {
+      background-color: #2ecc71;
+      font-size: 0.9rem;
+      padding: 5px 10px;
+      margin-left: 10px;
+    }
+    .small-button:hover {
+      background-color: #27ae60;
+    }
+  </style>
 </head>
 <body>
-    <div id="login-register">
-        <label for="username">Username:</label>
-        <input id="username"/><br><br>
-        
-        <label for="password">Password:</label>
-        <input id="password" type="password"/><br><br>
 
-        <button onclick="Login()">Login</button><br><br>
-        <button onclick="Register()">Register</button>
-    </div>
+<div id="login-register">
+  <h2>Login / Register</h2>
+  <label for="username">Username:</label>
+  <input id="username" type="text" placeholder="Enter username" /><br>
+  
+  <label for="password">Password:</label>
+  <input id="password" type="password" placeholder="Enter password" /><br>
 
-    <div id="content">
-        <button onclick="Logout()">Logout</button>
-        <button onclick="PopulateHistory()">Refresh</button>
-        <div id="history-div">
-            <ul id="history-ul"></ul>
-        </div>
-    </div>
+  <button onclick="Login()">Login</button>
+  <button onclick="Register()">Register</button>
+</div>
 
-    <script>
-        const security = " Secure;";
+<div id="content">
+  <h2>Clipboard History</h2>
+  <button onclick="Logout()">Logout</button>
+  <button onclick="PopulateHistory()">Refresh</button>
+  
+  <div id="history-div">
+    <ul id="history-ul"></ul>
+  </div>
+</div>
 
-        function GetCookie(name) {
-            const nameEQ = `${name}=`;
-            const cookies = document.cookie.split(';');
-            for (let c of cookies) {
-                c = c.trim();
-                if (c.startsWith(nameEQ)) {
-                    return decodeURIComponent(c.substring(nameEQ.length));
-                }
-            }
-            return null;
-        }
+<script>
+  const security = " Secure;";
 
-        function CopyToClipboard(text) {
-            navigator.clipboard.writeText(text).catch(error => alert(error));
-        }
+  function GetCookie(name) {
+    const nameEQ = `${name}=`;
+    const cookies = document.cookie.split(';');
+    for (let c of cookies) {
+      c = c.trim();
+      if (c.startsWith(nameEQ)) {
+        return decodeURIComponent(c.substring(nameEQ.length));
+      }
+    }
+    return null;
+  }
 
-        function PopulateHistory() {
-            fetch("/items", {
-                method: "GET",
-                headers: {"Authorization": GetCookie("basicauth")}
-            })
-            .then(response => {
-                if (response.status === 200) {
-                    return response.json();
-                } else {
-                    throw new Error(`Error fetching history: ${response.status}`);
-                }
-            })
-            .then(result => {
-                const historyList = document.getElementById("history-ul");
-                historyList.innerHTML = "";
-                for (let item of result) {
-                    const listItem = document.createElement("li");
-                    listItem.innerText = item.Content;
+  function CopyToClipboard(text) {
+    navigator.clipboard.writeText(text).catch(error => alert(error));
+  }
 
-                    const copyButton = document.createElement("button");
-                    copyButton.innerText = "📋";
-                    copyButton.addEventListener("click", () => CopyToClipboard(item.Content));
+  function PopulateHistory() {
+    fetch("/items", {
+      method: "GET",
+      headers: {"Authorization": GetCookie("basicauth")}
+    })
+    .then(response => {
+      if (response.status === 200) {
+        return response.json();
+      } else {
+        throw new Error(`Error fetching history: ${response.status}`);
+      }
+    })
+    .then(result => {
+      const historyList = document.getElementById("history-ul");
+      historyList.innerHTML = "";
+      for (let item of result) {
+        const listItem = document.createElement("li");
+        listItem.innerText = item.Content;
 
-                    listItem.appendChild(copyButton);
-                    historyList.appendChild(listItem);
-                }
-            })
-            .catch(error => console.error(error));
-        }
+        const copyButton = document.createElement("button");
+        copyButton.className = "small-button";
+        copyButton.innerText = "📋";
+        copyButton.addEventListener("click", () => CopyToClipboard(item.Content));
 
-        function ChangeToContentScreen() {
-            document.getElementById("login-register").style.display = "none";
-            document.getElementById("content").style.display = "block";
-            PopulateHistory();
-        }
+        listItem.appendChild(copyButton);
+        historyList.appendChild(listItem);
+      }
+    })
+    .catch(error => console.error(error));
+  }
 
-        function ChangeToLoginScreen() {
-            document.getElementById("login-register").style.display = "block";
-            document.getElementById("content").style.display = "none";
-        }
+  function ChangeToContentScreen() {
+    document.getElementById("login-register").style.display = "none";
+    document.getElementById("content").style.display = "block";
+    PopulateHistory();
+  }
 
-        function GetUsernameFromInput() {
-            return document.getElementById("username").value.trim();
-        }
+  function ChangeToLoginScreen() {
+    document.getElementById("login-register").style.display = "block";
+    document.getElementById("content").style.display = "none";
+  }
 
-        function GetPasswordFromInput() {
-            return document.getElementById("password").value;
-        }
+  function GetUsernameFromInput() {
+    return document.getElementById("username").value.trim();
+  }
 
-        function Login() {
-            const username = GetUsernameFromInput();
-            const password = GetPasswordFromInput();
-            const basicauth = "Basic " + btoa(`${username}:${password}`);
+  function GetPasswordFromInput() {
+    return document.getElementById("password").value;
+  }
 
-            fetch("/login", {
-                method: "GET",
-                headers: {"Authorization": basicauth}
-            })
-            .then(response => {
-                switch (response.status) {
-                    case 200:
-                        document.cookie = `basicauth=${encodeURIComponent(basicauth)};${security} SameSite=Strict; path=/; max-age=604800`;
-                        ChangeToContentScreen();
-                        break;
-                    case 400:
-                        alert("Invalid login input. Try again.");
-                        break;
-                    case 401:
-                        alert("Incorrect password.");
-                        break;
-                    case 404:
-                        alert("Username not found.");
-                        break;
-                    case 500:
-                        alert("Server error. Try again later.");
-                        break;
-                    default:
-                        alert("Unknown error occurred.");
-                        break;
-                }
-            })
-            .catch(error => console.error(error));
-        }
+  function Login() {
+    const username = GetUsernameFromInput();
+    const password = GetPasswordFromInput();
+    const basicauth = "Basic " + btoa(`${username}:${password}`);
 
-        function Register() {
-            const username = GetUsernameFromInput();
-            const password = GetPasswordFromInput();
+    fetch("/login", {
+      method: "GET",
+      headers: {"Authorization": basicauth}
+    })
+    .then(response => {
+      switch (response.status) {
+        case 200:
+          document.cookie = `basicauth=${encodeURIComponent(basicauth)};${security} SameSite=Strict; path=/; max-age=604800`;
+          ChangeToContentScreen();
+          break;
+        case 400:
+          alert("Invalid login input. Try again.");
+          break;
+        case 401:
+          alert("Incorrect password.");
+          break;
+        case 404:
+          alert("Username not found.");
+          break;
+        case 500:
+          alert("Server error. Try later.");
+          break;
+        default:
+          alert("Unknown error occurred.");
+          break;
+      }
+    })
+    .catch(error => console.error(error));
+  }
 
-            fetch("/register", {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({ username, password })
-            })
-            .then(response => {
-                switch (response.status) {
-                    case 200:
-                        alert("User registered successfully!");
-                        break;
-                    case 400:
-                        alert("Invalid registration input.");
-                        break;
-                    case 409:
-                        alert("Username already taken.");
-                        break;
-                    case 500:
-                        alert("Server error. Try again later.");
-                        break;
-                    default:
-                        alert("Unknown error occurred.");
-                        break;
-                }
-            })
-            .catch(error => console.error(error));
-        }
+  function Register() {
+    const username = GetUsernameFromInput();
+    const password = GetPasswordFromInput();
 
-        function Logout() {
-            document.cookie = `basicauth=; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=Strict; path=/`;
-            ChangeToLoginScreen();
-        }
+    fetch("/register", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({ username, password })
+    })
+    .then(response => {
+      switch (response.status) {
+        case 200:
+          alert("User registered successfully!");
+          break;
+        case 400:
+          alert("Invalid registration input.");
+          break;
+        case 409:
+          alert("Username already taken.");
+          break;
+        case 500:
+          alert("Server error. Try again later.");
+          break;
+        default:
+          alert("Unknown error occurred.");
+          break;
+      }
+    })
+    .catch(error => console.error(error));
+  }
 
-        // Initial screen setup
-        if (GetCookie("basicauth")) {
-            ChangeToContentScreen();
-        } else {
-            ChangeToLoginScreen();
-        }
-    </script>
+  function Logout() {
+    document.cookie = `basicauth=; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=Strict; path=/`;
+    ChangeToLoginScreen();
+  }
+
+  if (GetCookie("basicauth")) {
+    ChangeToContentScreen();
+  } else {
+    ChangeToLoginScreen();
+  }
+</script>
+
 </body>
 </html>
