@@ -1,7 +1,10 @@
 package main
 
 import (
+	"client/storage"
 	"embed"
+	"flag"
+	"fmt"
 
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
@@ -12,6 +15,14 @@ import (
 var assets embed.FS
 
 func main() {
+	devFlag := flag.Bool("dev", false, "set dev mode")
+	flag.Parse()
+
+	if *devFlag {
+		fmt.Println("dev flag set")
+		storage.SecurityCheck = false
+	}
+
 	// Create an instance of the app structure
 	app := NewApp()
 

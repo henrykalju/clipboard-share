@@ -7,7 +7,27 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 )
+
+var SecurityCheck = true
+
+func checkSecurity(raw string) error {
+	u, err := url.Parse(raw)
+	if err != nil {
+		return fmt.Errorf("error parsing url: %w", err)
+	}
+
+	if u.Scheme != "http" && u.Scheme != "https" {
+		return fmt.Errorf("must use http or https scheme, current is %s", u.Scheme)
+	}
+
+	if SecurityCheck && u.Scheme != "https" {
+		return fmt.Errorf("must use https scheme, current is %s", u.Scheme)
+	}
+
+	return nil
+}
 
 type storageItem struct {
 	ID      int32
@@ -22,6 +42,12 @@ type data struct {
 }
 
 func SaveItem(i *common.Item) error {
+	url := common.GetBackendUrl()
+	err := checkSecurity(url)
+	if err != nil {
+		return err
+	}
+
 	si := storageItem{
 		Type:    i.Type.Text,
 		Content: i.Text,
@@ -39,7 +65,7 @@ func SaveItem(i *common.Item) error {
 		return err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, common.GetBackendUrl()+"/items", bytes.NewBuffer(body))
+	req, err := http.NewRequest(http.MethodPost, url+"/items", bytes.NewBuffer(body))
 	if err != nil {
 		return err
 	}
@@ -57,7 +83,12 @@ func SaveItem(i *common.Item) error {
 }
 
 func GetItems() ([]common.ItemWithID, error) {
-	req, err := http.NewRequest(http.MethodGet, common.GetBackendUrl()+"/items", nil)
+	url := common.GetBackendUrl()
+	err := checkSecurity(url)
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequest(http.MethodGet, url+"/items", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -111,7 +142,13 @@ func GetItems() ([]common.ItemWithID, error) {
 func GetItemByID(id int32) (common.Item, error) {
 	var i common.Item
 
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/items/%d", common.GetBackendUrl(), id), nil)
+	url := common.GetBackendUrl()
+	err := checkSecurity(url)
+	if err != nil {
+		return i, err
+	}
+
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/items/%d", url, id), nil)
 	if err != nil {
 		return i, err
 	}
