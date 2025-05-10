@@ -179,6 +179,9 @@ func SaveItem(i *common.Item) error {
 	if err != nil {
 		return err
 	}
+	if resp.StatusCode == http.StatusUnauthorized {
+		return fmt.Errorf("error saving item, incorrect username or password")
+	}
 	if resp.StatusCode != http.StatusCreated {
 		return fmt.Errorf("error saving item, response code: %d", resp.StatusCode)
 	}
@@ -199,6 +202,10 @@ func GetItems() ([]common.ItemWithID, error) {
 	resp, err := (&http.Client{}).Do(req)
 	if err != nil {
 		return nil, err
+	}
+
+	if resp.StatusCode == http.StatusUnauthorized {
+		return nil, fmt.Errorf("error getting items from storage, incorrect username or password")
 	}
 
 	if resp.StatusCode != http.StatusOK {
@@ -260,8 +267,12 @@ func GetItemByID(id int32) (common.Item, error) {
 		return i, err
 	}
 
+	if resp.StatusCode == http.StatusUnauthorized {
+		return i, fmt.Errorf("error getting item from storage, incorrect username or password")
+	}
+
 	if resp.StatusCode != http.StatusOK {
-		return i, fmt.Errorf("error getting items from storage, resp code: %d", resp.StatusCode)
+		return i, fmt.Errorf("error getting item from storage, resp code: %d", resp.StatusCode)
 	}
 
 	body, err := io.ReadAll(resp.Body)

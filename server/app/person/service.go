@@ -18,7 +18,7 @@ func GetPersonIDFromRequest(w http.ResponseWriter, r *http.Request) (int32, erro
 	person, err := db.Q.GetPerson(r.Context(), username)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			w.WriteHeader(http.StatusNotFound)
+			w.WriteHeader(http.StatusUnauthorized)
 			return 0, errors.New("person does not exist")
 		} else {
 			fmt.Printf("Error getting person: %s\n", err.Error())
