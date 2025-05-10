@@ -51,6 +51,6 @@ where i.id in (
             order by created_at desc
         )
     )
-    where total > @threshold::int
+    where total > sqlc.arg(threshold)::int
     offset 1
 );
