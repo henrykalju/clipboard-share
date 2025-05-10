@@ -9,6 +9,42 @@ import (
 	"context"
 )
 
+const checkSizes = `-- name: CheckSizes :exec
+delete from item i
+where i.id in (
+    select
+        item_id
+    from (
+        select
+            item_id
+            ,size
+            ,sum(size) over (order by item_id desc) as total
+        from (
+            select
+                i.id as item_id
+                ,sum(pg_column_size(d.data)) as size
+            from item i
+            join data d on i.person_id = $1
+                and d.item_id = i.id
+            group by i.id
+            order by created_at desc
+        )
+    )
+    where total > $2::int
+    offset 1
+)
+`
+
+type CheckSizesParams struct {
+	PersonID  int32
+	Threshold int32
+}
+
+func (q *Queries) CheckSizes(ctx context.Context, arg CheckSizesParams) error {
+	_, err := q.db.Exec(ctx, checkSizes, arg.PersonID, arg.Threshold)
+	return err
+}
+
 const deleteItem = `-- name: DeleteItem :exec
 delete from item
 where id = $1
@@ -82,6 +118,7 @@ select
     id, person_id, type, content, created_at
 from item
 where person_id = $1
+order by created_at
 `
 
 func (q *Queries) GetItemsByPerson(ctx context.Context, personID int32) ([]Item, error) {

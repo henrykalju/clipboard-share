@@ -120,6 +120,20 @@ func insertItem(item ItemWithData) (ItemWithData, error) {
 	err = tx.Commit(ctx)
 	if err != nil {
 		fmt.Printf("Error committing adding item: %s\n", err.Error())
+		return item, err
 	}
+
+	go checkSizes(returnedItem.PersonID)
+
 	return returnedItem, nil
+}
+
+func checkSizes(personID int32) {
+	err := db.Q.CheckSizes(context.Background(), db.CheckSizesParams{
+		PersonID:  personID,
+		Threshold: 1024 * 1024,
+	})
+	if err != nil {
+		fmt.Printf("Error deleting items that cross threshold of 1MB: %s\n", err.Error())
+	}
 }

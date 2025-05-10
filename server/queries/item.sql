@@ -2,7 +2,8 @@
 select
     *
 from item
-where person_id = $1;
+where person_id = $1
+order by created_at;
 
 -- name: GetItemByIdAndPerson :one
 select
@@ -28,3 +29,28 @@ values ($1, $2, $3) returning *;
 -- name: DeleteItem :exec
 delete from item
 where id = $1;
+
+-- name: CheckSizes :exec
+delete from item i
+where i.id in (
+    select
+        item_id
+    from (
+        select
+            item_id
+            ,size
+            ,sum(size) over (order by item_id desc) as total
+        from (
+            select
+                i.id as item_id
+                ,sum(pg_column_size(d.data)) as size
+            from item i
+            join data d on i.person_id = $1
+                and d.item_id = i.id
+            group by i.id
+            order by created_at desc
+        )
+    )
+    where total > @threshold::int
+    offset 1
+);

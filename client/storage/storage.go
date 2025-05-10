@@ -3,28 +3,132 @@ package storage
 import (
 	"bytes"
 	"client/common"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
+
+	"github.com/gorilla/websocket"
 )
 
-var SecurityCheck = true
+var (
+	SecurityCheck = true
+	ws            *websocket.Conn
+)
 
-func checkSecurity(raw string) error {
+func checkSecurity(raw string) (string, error) {
+	if !strings.Contains(raw, "://") {
+		raw = "x://" + raw
+	}
+
 	u, err := url.Parse(raw)
 	if err != nil {
-		return fmt.Errorf("error parsing url: %w", err)
+		return "", fmt.Errorf("error parsing url: %w", err)
+	}
+
+	if u.Scheme == "x" {
+		u.Scheme = ""
+	}
+
+	if u.Scheme == "" {
+		u.Scheme = "http"
+		if SecurityCheck {
+			u.Scheme += "s"
+		}
 	}
 
 	if u.Scheme != "http" && u.Scheme != "https" {
-		return fmt.Errorf("must use http or https scheme, current is %s", u.Scheme)
+		return "", fmt.Errorf("must use http or https scheme, current is %s", u.Scheme)
 	}
 
 	if SecurityCheck && u.Scheme != "https" {
-		return fmt.Errorf("must use https scheme, current is %s", u.Scheme)
+		return "", fmt.Errorf("must use https scheme, current is %s", u.Scheme)
 	}
+
+	return u.String(), nil
+}
+
+func RestartWebsocket(c chan bool) error {
+	if ws != nil {
+		err := ws.Close()
+		if err != nil {
+			return err
+		}
+		ws = nil
+	}
+
+	return StartWebsocket(c)
+}
+
+func StartWebsocket(c chan bool) error {
+	if ws != nil {
+		panic("Websocket is not nil and trying to start one")
+	}
+
+	conf := common.GetConf()
+	raw := conf.BackendUrl
+	if !strings.Contains(raw, "://") {
+		raw = "x://" + raw
+	}
+	u, err := url.Parse(raw)
+	if err != nil {
+		return err
+	}
+	if u.Scheme == "x" {
+		u.Scheme = ""
+	}
+
+	if u.Scheme == "" {
+		u.Scheme = "ws"
+		if SecurityCheck {
+			u.Scheme += "s"
+		}
+	}
+
+	if u.Scheme != "ws" && u.Scheme != "wss" {
+		return fmt.Errorf("must use ws or wss scheme, current is %s", u.Scheme)
+	}
+
+	if SecurityCheck && u.Scheme != "wss" {
+		return fmt.Errorf("must use wss scheme, current is %s", u.Scheme)
+	}
+
+	header := http.Header{}
+	header.Add("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(conf.Username+":"+conf.Password)))
+
+	conn, resp, err := websocket.DefaultDialer.Dial(u.String()+"/ws", header)
+	if err != nil {
+		if resp == nil {
+			return fmt.Errorf("error dialing ws: %w", err)
+		}
+		if resp.StatusCode == http.StatusUnauthorized {
+			return fmt.Errorf("incorrect username or password")
+		}
+	}
+	if conn == nil {
+		return fmt.Errorf("websocket connection is nil")
+	}
+
+	go func() {
+		for {
+			msgType, message, err := conn.ReadMessage()
+			if err != nil {
+				fmt.Printf("Error reading websocket: %s\n", err.Error())
+				c <- false
+				return
+			}
+			if msgType != websocket.TextMessage {
+				fmt.Printf("Websocket sent not textmessage: %d\n", msgType)
+				continue
+			}
+			if string(message) == "HISTORY" {
+				c <- true
+			}
+		}
+	}()
 
 	return nil
 }
@@ -42,8 +146,7 @@ type data struct {
 }
 
 func SaveItem(i *common.Item) error {
-	url := common.GetBackendUrl()
-	err := checkSecurity(url)
+	url, err := checkSecurity(common.GetBackendUrl())
 	if err != nil {
 		return err
 	}
@@ -83,8 +186,7 @@ func SaveItem(i *common.Item) error {
 }
 
 func GetItems() ([]common.ItemWithID, error) {
-	url := common.GetBackendUrl()
-	err := checkSecurity(url)
+	url, err := checkSecurity(common.GetBackendUrl())
 	if err != nil {
 		return nil, err
 	}
@@ -142,8 +244,7 @@ func GetItems() ([]common.ItemWithID, error) {
 func GetItemByID(id int32) (common.Item, error) {
 	var i common.Item
 
-	url := common.GetBackendUrl()
-	err := checkSecurity(url)
+	url, err := checkSecurity(common.GetBackendUrl())
 	if err != nil {
 		return i, err
 	}

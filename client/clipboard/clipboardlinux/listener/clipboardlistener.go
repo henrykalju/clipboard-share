@@ -82,5 +82,5 @@ func FindName(values []common.Value) string {
 		return string(values[STRINGi].Data)
 	}
 
-	return ""
+	return "STRING NOT FOUND"
 }

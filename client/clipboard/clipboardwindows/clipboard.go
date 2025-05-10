@@ -281,7 +281,7 @@ func findText(values []common.Value) string {
 		return string(bytes.SplitN(values[STRINGi].Data, []byte{0}, 2)[0])
 	}
 
-	return ""
+	return "CF_TEXT NOT FOUND"
 }
 
 func forbiddenFormat(f string) bool {

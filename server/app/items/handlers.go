@@ -2,6 +2,7 @@ package items
 
 import (
 	"clipboard-share-server/app/person"
+	"clipboard-share-server/app/websocket"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -15,6 +16,7 @@ func GetAllItems(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// TODO: remove data from item
 	items, err := getItemsWithDataByPerson(personID)
 	if err != nil {
 		fmt.Printf("Error getting items: %s\n", err.Error())
@@ -108,4 +110,6 @@ func AddItem(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	w.Write(response)
+
+	go websocket.NotifyConnectionsOfHistoryUpdate(personID)
 }

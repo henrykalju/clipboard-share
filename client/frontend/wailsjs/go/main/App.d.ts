@@ -6,6 +6,8 @@ export function GetConfig():Promise<common.Config>;
 
 export function GetHistory():Promise<Array<common.ItemWithID>>;
 
+export function Refresh():Promise<void>;
+
 export function UpdateConfig(arg1:common.Config):Promise<void>;
 
 export function WriteToCB(arg1:number):Promise<void>;

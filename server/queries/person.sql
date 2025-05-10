@@ -4,6 +4,12 @@ select
 from person
 where username = $1;
 
+-- name: GetPersonByID :one
+select
+    *
+from person
+where id = $1;
+
 -- name: InsertPerson :exec
 insert into person (
     username,

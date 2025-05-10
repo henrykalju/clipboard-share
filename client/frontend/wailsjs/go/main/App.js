@@ -10,6 +10,10 @@ export function GetHistory() {
   return window['go']['main']['App']['GetHistory']();
 }
 
+export function Refresh() {
+  return window['go']['main']['App']['Refresh']();
+}
+
 export function UpdateConfig(arg1) {
   return window['go']['main']['App']['UpdateConfig'](arg1);
 }

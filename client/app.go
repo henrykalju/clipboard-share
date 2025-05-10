@@ -16,9 +16,9 @@ var CB = "asd"
 
 // App struct
 type App struct {
-	ctx     context.Context
-	c       clipboard.Clipboard
-	history []common.Item
+	ctx context.Context
+	c   clipboard.Clipboard
+	ws  chan bool
 }
 
 // NewApp creates a new App application struct
@@ -45,9 +45,12 @@ func (a *App) startup(ctx context.Context) {
 	}
 
 	go a.startListeningForClipboard()
-
-	a.history = make([]common.Item, 0)
-	a.history = append(a.history, common.Item{Text: "test", Values: []common.Value{{Format: "STRING", Data: []byte("test\n")}}})
+	a.ws = make(chan bool)
+	err = storage.StartWebsocket(a.ws)
+	if err != nil {
+		fmt.Printf("Error starting websocket: %s\n", err.Error())
+	}
+	go a.waitForWebsocket()
 }
 
 func (a *App) GetHistory() ([]common.ItemWithID, error) {
@@ -71,6 +74,30 @@ func (a *App) WriteToCB(id int32) error {
 	return nil
 }
 
+func (a *App) UpdateConfig(conf common.Config) error {
+	err := common.SetConf(conf)
+	if err != nil {
+		fmt.Printf("Error updating conf: %s\n", err.Error())
+		return err
+	}
+
+	err = storage.RestartWebsocket(a.ws)
+	if err != nil {
+		fmt.Printf("Error restarting websocket: %s\n", err.Error())
+		return err
+	}
+
+	return nil
+}
+
+func (a *App) GetConfig() common.Config {
+	return common.GetConf()
+}
+
+func (a *App) Refresh() error {
+	return storage.RestartWebsocket(a.ws)
+}
+
 func (a *App) startListeningForClipboard() {
 	for {
 		select {
@@ -84,14 +111,19 @@ func (a *App) startListeningForClipboard() {
 	}
 }
 
-func (a *App) UpdateConfig(conf common.Config) error {
-	err := common.SetConf(conf)
-	if err != nil {
-		fmt.Printf("Error updating conf: %s\n", err.Error())
+func (a *App) waitForWebsocket() {
+	for {
+		select {
+		case b := <-a.ws:
+			if b {
+				runtime.EventsEmit(a.ctx, CB_UPDATE_EVENT)
+			} else {
+				err := storage.RestartWebsocket(a.ws)
+				if err != nil {
+					fmt.Printf("Error restarting websocket: %s\n", err.Error())
+					//a.ws <- false
+				}
+			}
+		}
 	}
-	return err
-}
-
-func (a *App) GetConfig() common.Config {
-	return common.GetConf()
 }

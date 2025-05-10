@@ -23,6 +23,20 @@ func (q *Queries) GetPerson(ctx context.Context, username string) (Person, error
 	return i, err
 }
 
+const getPersonByID = `-- name: GetPersonByID :one
+select
+    id, username, password
+from person
+where id = $1
+`
+
+func (q *Queries) GetPersonByID(ctx context.Context, id int32) (Person, error) {
+	row := q.db.QueryRow(ctx, getPersonByID, id)
+	var i Person
+	err := row.Scan(&i.ID, &i.Username, &i.Password)
+	return i, err
+}
+
 const insertPerson = `-- name: InsertPerson :exec
 insert into person (
     username,

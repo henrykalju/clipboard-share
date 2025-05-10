@@ -1,14 +1,19 @@
 <script lang="ts">
   import {EventsOn} from '../wailsjs/runtime'
-  import {GetHistory, WriteToCB, GetConfig, UpdateConfig} from '../wailsjs/go/main/App'
+  import {GetHistory, WriteToCB, GetConfig, UpdateConfig, Refresh} from '../wailsjs/go/main/App'
   import {common} from '../wailsjs/go/models'
 
   let items: common.ItemWithID[] = $state([])
   GetHistory().then(result => items = result.reverse()).catch(err => alert(err));
 
-  function cbUpdate(...data: any): void {
+  function cbUpdate(): void {
     items = [];
     GetHistory().then(result => items = result.reverse()).catch(err => alert(err));
+  }
+
+  function refresh(): void {
+    Refresh().catch(err => alert(err));
+    cbUpdate();
   }
 
   function handleClick(item: common.ItemWithID) {
@@ -45,7 +50,7 @@
 </script>
 
 <main>
-  <button onclick={cbUpdate}>🔄 Refresh</button>
+  <button onclick={refresh}>🔄 Refresh</button>
   <button onclick={openModal}>⚙️ Settings</button>
   {#if showModal}
     <div role="button" tabindex="0" class="modal-backdrop" onclick={() => showModal = false} onkeydown={(e) => {if (e.key === "Escape") showModal = false;}}>

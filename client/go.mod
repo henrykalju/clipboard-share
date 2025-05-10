@@ -5,6 +5,7 @@ go 1.23.0
 toolchain go1.23.7
 
 require (
+	github.com/gorilla/websocket v1.5.3
 	github.com/wailsapp/wails/v2 v2.10.1
 	golang.org/x/sys v0.31.0
 )
