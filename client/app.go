@@ -81,11 +81,7 @@ func (a *App) UpdateConfig(conf common.Config) error {
 		return err
 	}
 
-	err = storage.RestartWebsocket(a.ws)
-	if err != nil {
-		fmt.Printf("Error restarting websocket: %s\n", err.Error())
-		return err
-	}
+	a.sendCbUpdateEvent()
 
 	return nil
 }
@@ -106,7 +102,7 @@ func (a *App) startListeningForClipboard() {
 			if err != nil {
 				fmt.Printf("Error saving item to storage: %s\n", err.Error())
 			}
-			runtime.EventsEmit(a.ctx, CB_UPDATE_EVENT)
+			a.sendCbUpdateEvent()
 		}
 	}
 }
@@ -116,7 +112,7 @@ func (a *App) waitForWebsocket() {
 		select {
 		case b := <-a.ws:
 			if b {
-				runtime.EventsEmit(a.ctx, CB_UPDATE_EVENT)
+				a.sendCbUpdateEvent()
 			} else {
 				err := storage.RestartWebsocket(a.ws)
 				if err != nil {
@@ -126,4 +122,8 @@ func (a *App) waitForWebsocket() {
 			}
 		}
 	}
+}
+
+func (a *App) sendCbUpdateEvent() {
+	runtime.EventsEmit(a.ctx, CB_UPDATE_EVENT)
 }
