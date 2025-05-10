@@ -66,10 +66,8 @@ unsigned char *get_target_data(Display *dpy, Window w, Atom sel, Atom target, At
     unsigned long nitems, bytes_after;
     unsigned char *prop_ret = NULL;
 
-    // Request the content of the target
     XConvertSelection(dpy, sel, target, property, w, CurrentTime);
 
-    // Wait for the SelectionNotify event
     for (;;) {
         XEvent ev;
         XNextEvent(dpy, &ev);
@@ -83,7 +81,6 @@ unsigned char *get_target_data(Display *dpy, Window w, Atom sel, Atom target, At
         }
     }
 
-    // Retrieve the property content
     XGetWindowProperty(dpy, w, property, 0, (~0L), False, AnyPropertyType,
                        &type, &format, &nitems, &bytes_after, &prop_ret);
 
@@ -94,8 +91,6 @@ unsigned char *get_target_data(Display *dpy, Window w, Atom sel, Atom target, At
 }
 
 void process_targets(Display *dpy, Window w, Atom sel, Atom targets_property, Atom target_property) {
-    //show_targets(dpy, w, sel, targets_property);
-
     Atom *targets;
     unsigned long nitems;
     int di;
@@ -103,7 +98,6 @@ void process_targets(Display *dpy, Window w, Atom sel, Atom targets_property, At
     Atom type;
     unsigned char *prop_ret = NULL;
 
-    // Request the TARGETS list
     XConvertSelection(dpy, sel, XInternAtom(dpy, "TARGETS", False), targets_property, w, CurrentTime);
     for (;;) {
         XEvent ev;
@@ -111,7 +105,6 @@ void process_targets(Display *dpy, Window w, Atom sel, Atom targets_property, At
         if (ev.type == SelectionNotify) break;
     }
 
-    // Retrieve the TARGETS property
     XGetWindowProperty(dpy, w, targets_property, 0, 1024 * sizeof(Atom), False, XA_ATOM,
                        &type, &di, &nitems, &dul, &prop_ret);
 
@@ -122,7 +115,6 @@ void process_targets(Display *dpy, Window w, Atom sel, Atom targets_property, At
 
         if (!name) continue;
 
-        // Skip unwanted TARGETS
         if (skip_target(name)) {
             XFree(name);
             continue;
@@ -131,7 +123,6 @@ void process_targets(Display *dpy, Window w, Atom sel, Atom targets_property, At
         unsigned long data_size;
         unsigned char *data = get_target_data(dpy, w, sel, targets[i], target_property, &data_size);
         if (data) {
-            // Do something with the raw data (e.g., store or process)
             add_value(&item, XGetAtomName(dpy, targets[i]), data, data_size);
             XFree(data);
         }
@@ -145,14 +136,12 @@ void process_targets(Display *dpy, Window w, Atom sel, Atom targets_property, At
 }
 
 Window Init() {
-    // Open the X display
     listenerdisplay = XOpenDisplay(NULL);
     if (!listenerdisplay) {
         fprintf(stderr, "Unable to open X display\n");
         return 0;
     }
 
-    // Define atoms for CLIPBOARD and UTF8_STRING
     root = DefaultRootWindow(listenerdisplay);
 
     listenerwindow = XCreateSimpleWindow(listenerdisplay, root, -10, -10, 1, 1, 0, 0, 0);
@@ -163,7 +152,6 @@ void StartListening() {
     printf("starting listening\n");
     
 
-    // Check if XFixes extension is available
     int event_base, error_base;
     if (!XFixesQueryExtension(listenerdisplay, &event_base, &error_base)) {
         fprintf(stderr, "XFixes extension not available\n");
@@ -171,41 +159,29 @@ void StartListening() {
         return;
     }
 
-    //Atom XA_UTF8_STRING = XInternAtom(display, "TARGETS", False);
-
     Atom clipboard = XInternAtom(listenerdisplay, "CLIPBOARD", False);
     Atom targets = XInternAtom(listenerdisplay, "TARGETS_PROPERTY", False);
     Atom target = XInternAtom(listenerdisplay, "TARGET_DATA", False);
 
-
-    // Select the necessary XFixes input event to listen for selection ownership changes
     XFixesSelectSelectionInput(listenerdisplay, root, clipboard, XFixesSetSelectionOwnerNotifyMask);
 
-    // Event loop to listen for changes
     while (1) {
         XEvent event;
         XNextEvent(listenerdisplay, &event);
 
-        // Check for the selection ownership notification
         if (event.type == event_base + XFixesSelectionNotify) {
             XFixesSelectionNotifyEvent *notify_event = (XFixesSelectionNotifyEvent *)&event;
             if (notify_event->owner == writerwindow2) {
                 printf("got writer request\n");
                 continue;
             }
-            // Check if the clipboard has been updated
+            
             if (notify_event->selection == clipboard) {
-                //printf("Clipboard content changed!\n");
-
                 process_targets(listenerdisplay, listenerwindow, clipboard, targets, target);
-
-                // Optionally, you can fetch the clipboard data here
-                // For simplicity, we assume that the content was updated and we can print a message
             }
         }
     }
 
-    // Close the display connection
     XCloseDisplay(listenerdisplay);
     return;
 }

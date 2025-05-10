@@ -2,7 +2,7 @@
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
 #include <stdio.h>
-#include <unistd.h>  // For sleep()
+#include <unistd.h>
 #include <string.h>
 #include <time.h>
 #include <stdlib.h>
@@ -20,9 +20,6 @@ void set_listener(Window l) {
 int take_clipboard_ownership() {
     int x = XSetSelectionOwner(writerdisplay, clipboard, writerwindow, CurrentTime);
     XFlush(writerdisplay);
-    //Window y = XGetSelectionOwner(display, clipboard);
-    //printf("took owner, x - %i, y - %lu\n", x, y);
-    //printf("took owner, x - %i\n", x);
     return x;
 }
 
@@ -35,11 +32,8 @@ void free_clipboard() {
 }
 
 void set_clipboard_item(Item new_item) {
-    //printf("setting clipboard item\n");
     free_clipboard();
-    //printf("clipboard freed\n");
     
-    // Assign new item
     clipboard_item = new_item;
     take_clipboard_ownership();
 }
@@ -54,8 +48,6 @@ Window init_clipboard() {
     writerwindow = XCreateSimpleWindow(writerdisplay, RootWindow(writerdisplay, 0), 0, 0, 1, 1, 0, 0, 0);
     clipboard = XInternAtom(writerdisplay, "CLIPBOARD", False);
     targets_atom = XInternAtom(writerdisplay, "TARGETS", False);
-
-    //take_clipboard_ownership();
 
     char *data = "TEST\n";
     Item c;
@@ -73,7 +65,7 @@ Window init_clipboard() {
 void send_no(Display *dpy, XSelectionRequestEvent *sev) {
     XSelectionEvent ssev;
     char *an = XGetAtomName(dpy, sev->target);
-    //printf("Denying request of type '%s'\n", an);
+    
     if (an)
         XFree(an);
 
@@ -88,7 +80,6 @@ void send_no(Display *dpy, XSelectionRequestEvent *sev) {
 }
 
 void send_targets(Display *dpy, XSelectionRequestEvent *sev) {
-    //printf("Sending targets to window 0x%lx, property %s\n", sev->requestor, XGetAtomName(dpy, sev->property));
     Atom *supported_targets = malloc((clipboard_item.len + 1) * sizeof(Atom));
     supported_targets[0] = XInternAtom(dpy, "TARGETS", False);
     
@@ -114,7 +105,6 @@ void send_targets(Display *dpy, XSelectionRequestEvent *sev) {
 }
 
 void send_format(Display *dpy, XSelectionRequestEvent *sev) {
-    //printf("sending format\n");
     char* format_name = XGetAtomName(dpy, sev->target);
     for (int i = 0; i < clipboard_item.len; i++) {
         if (strcmp(clipboard_item.values[i].format, format_name) == 0) {
@@ -141,16 +131,14 @@ void start_clipboard() {
     XEvent ev;
     XSelectionRequestEvent* sev;
     for (;;) {
-        //printf("writer waiting for event\n");
         XNextEvent(writerdisplay, &ev);
-        //printf("writer got event\n");
         if (ev.type == SelectionRequest) {
             sev = (XSelectionRequestEvent*)&ev.xselectionrequest;
             if (sev->requestor == listenerwindow2) {
                 printf("got listener request\n");
                 continue;
             }
-            //printf("Requestor: 0x%lx\n", sev->requestor);
+            
             if (sev->target == targets_atom)
                 send_targets(writerdisplay, sev);
             else
@@ -159,11 +147,3 @@ void start_clipboard() {
     }
     free_clipboard();
 }
-/*
-int main() {
-    init_clipboard();
-    //return take_clipboard_ownership();
-    return start_clipboard();
-    //return 0;
-}
-*/
