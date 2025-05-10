@@ -12,8 +12,11 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-var conn *pgxpool.Pool
-var Q *Queries
+var (
+	conn          *pgxpool.Pool
+	Q             *Queries
+	PersonDbLimit int32
+)
 
 func Init(connString string) error {
 	migrator, err := migrate.New("file://migrations", connString+"?sslmode=disable")

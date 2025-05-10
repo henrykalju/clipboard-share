@@ -131,7 +131,7 @@ func insertItem(item ItemWithData) (ItemWithData, error) {
 func checkSizes(personID int32) {
 	err := db.Q.CheckSizes(context.Background(), db.CheckSizesParams{
 		PersonID:  personID,
-		Threshold: 1024 * 1024,
+		Threshold: db.PersonDbLimit,
 	})
 	if err != nil {
 		fmt.Printf("Error deleting items that cross threshold of 1MB: %s\n", err.Error())

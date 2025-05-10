@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strconv"
 
 	"github.com/joho/godotenv"
 )
@@ -21,15 +22,6 @@ func main() {
 			panic(fmt.Errorf("could not open .env in dev mode: %w", err))
 		}
 	}
-
-	/*
-	   DB_HOST=localhost:5432
-	   PORT=8080
-
-	   POSTGRES_USER=postgres
-	   POSTGRES_PASSWORD=postgres
-	   POSTGRES_DB=postgres
-	*/
 
 	dbHost, ok := os.LookupEnv("DB_HOST")
 	if !ok {
@@ -46,6 +38,17 @@ func main() {
 	dbDB, ok := os.LookupEnv("POSTGRES_DB")
 	if !ok {
 		panic("ENV VAR POSTGRES_DB NOT SET")
+	}
+
+	userDbLimitEnvVar, ok := os.LookupEnv("USER_DB_LIMIT")
+	if !ok {
+		db.PersonDbLimit = 1024 * 1024
+	} else {
+		lim, err := strconv.ParseInt(userDbLimitEnvVar, 10, 32)
+		if err != nil {
+			panic(fmt.Errorf("COULD NOT PARSE ENV VAR USER_DB_LIMIT: %w", err))
+		}
+		db.PersonDbLimit = int32(lim)
 	}
 
 	dbConn := fmt.Sprintf("postgres://%s:%s@%s/%s", dbUser, dbPass, dbHost, dbDB)
