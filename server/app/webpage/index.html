@@ -233,6 +233,17 @@
                 .catch(error => console.error(error));
         }
 
+        async function CheckLogin() {
+            const basicauth = GetCookie("basicauth");
+
+            const resp = await fetch("/login", {
+                method: "GET",
+                headers: { "Authorization": basicauth }
+            });
+
+            return resp.status == 200;
+        }
+
         function Register() {
             const username = GetUsernameFromInput();
             const password = GetPasswordFromInput();
@@ -269,10 +280,11 @@
             ChangeToLoginScreen();
         }
 
-        if (GetCookie("basicauth")) {
+        const loginOk = await CheckLogin()
+        if (GetCookie("basicauth") && loginOk) {
             ChangeToContentScreen();
         } else {
-            ChangeToLoginScreen();
+            Logout();
         }
     </script>
 
