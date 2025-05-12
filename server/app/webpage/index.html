@@ -280,12 +280,15 @@
             ChangeToLoginScreen();
         }
 
-        const loginOk = await CheckLogin()
-        if (GetCookie("basicauth") && loginOk) {
-            ChangeToContentScreen();
-        } else {
-            Logout();
+        async function InitApp() {
+            if (GetCookie("basicauth") && await CheckLogin()) {
+                ChangeToContentScreen();
+            } else {
+                Logout();
+            }
         }
+
+        InitApp();
     </script>
 
 </body>
