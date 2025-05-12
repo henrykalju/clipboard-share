@@ -17,11 +17,9 @@ type Config struct {
 var conf *viper.Viper
 
 const (
-	BACKEND_URL_KEY     = "BACKEND_URL"
-	BACKEND_URL_DEFAULT = "localhost:8080"
-
-	USERNAME_KEY = "USERNAME"
-	PASSWORD_KEY = "PASSWORD"
+	BACKEND_URL_KEY = "BACKEND_URL"
+	USERNAME_KEY    = "USERNAME"
+	PASSWORD_KEY    = "PASSWORD"
 
 	CONF_PATH = "clipboard-share"
 	CONF_FILE = "config.json"
@@ -72,7 +70,7 @@ func InitConfig() error {
 }
 
 func setDefaults(c *viper.Viper) {
-	c.SetDefault(BACKEND_URL_KEY, BACKEND_URL_DEFAULT)
+	c.SetDefault(BACKEND_URL_KEY, "")
 	c.SetDefault(USERNAME_KEY, "")
 	c.SetDefault(PASSWORD_KEY, "")
 }
