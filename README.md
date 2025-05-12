@@ -1,6 +1,20 @@
 # clipboard-share
 A desktop application to share clipboard with history between devices
 
+## Setting it up
+### Server
+- `cd server`
+- `cp sample.env .env`
+- Change anything needed in the `.env` file
+- Add a TLS proxy in front of the `server` container (unless developing locally)
+- `docker compose up -d`
+
+### Client
+- `cd client`
+- `wails dev --appargs "-dev"` (for local development)
+- `wails build`
+- built binaries are in the `build` folder (-dev flag still works for disabling TLS requirement)
+
 ## How it works
 ### Server
 - Go API
