@@ -21,7 +21,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			fmt.Println("person not exist")
-			w.WriteHeader(http.StatusNotFound)
+			w.WriteHeader(http.StatusUnauthorized)
 		} else {
 			fmt.Printf("Error getting person: %s\n", err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
