@@ -51,6 +51,8 @@ func (a *App) startup(ctx context.Context) {
 		fmt.Printf("Error starting websocket: %s\n", err.Error())
 	}
 	go a.waitForWebsocket()
+
+	// TODO maybe hide window on startup but show window on keybind or smth
 }
 
 func (a *App) GetHistory() ([]common.ItemWithID, error) {
