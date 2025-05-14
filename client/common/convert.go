@@ -31,7 +31,7 @@ func convertX11ToWindows(item Item) (Item, error) {
 	i.Values = make([]Value, 0)
 
 	textI := slices.IndexFunc(item.Values, func(v Value) bool {
-		return v.Format == "STRING"
+		return v.Format == "TEXT"
 	})
 	if textI != -1 {
 		v := Value{
@@ -61,7 +61,7 @@ func convertWindowsToX11(item Item) (Item, error) {
 	})
 	if textI != -1 {
 		v := Value{
-			Format: "STRING",
+			Format: "TEXT",
 			Data:   item.Values[textI].Data[:len(item.Values[textI].Data)-1],
 		}
 		i.Values = append(i.Values, v)
