@@ -137,6 +137,12 @@ type storageItem struct {
 	ID      int32
 	Type    string
 	Content string
+}
+
+type storageItemWithData struct {
+	ID      int32
+	Type    string
+	Content string
 	Data    []data
 }
 
@@ -151,7 +157,7 @@ func SaveItem(i *common.Item) error {
 		return err
 	}
 
-	si := storageItem{
+	si := storageItemWithData{
 		Type:    i.Type.Text,
 		Content: i.Text,
 		Data:    []data{},
@@ -235,13 +241,6 @@ func GetItems() ([]common.ItemWithID, error) {
 			},
 		}
 
-		for _, v2 := range v.Data {
-			i.Values = append(i.Values, common.Value{
-				Format: v2.Format,
-				Data:   v2.Data,
-			})
-		}
-
 		items = append(items, i)
 	}
 
@@ -280,7 +279,7 @@ func GetItemByID(id int32) (common.Item, error) {
 		return i, err
 	}
 
-	var si storageItem
+	var si storageItemWithData
 	err = json.Unmarshal(body, &si)
 	if err != nil {
 		return i, err

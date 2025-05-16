@@ -17,7 +17,7 @@ func GetAllItems(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// TODO: remove data from item
-	items, err := getItemsWithDataByPerson(personID)
+	items, err := getItemsWithoutDataByPerson(personID)
 	if err != nil {
 		fmt.Printf("Error getting items: %s\n", err.Error())
 		w.WriteHeader(http.StatusInternalServerError)

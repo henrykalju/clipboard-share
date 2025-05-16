@@ -37,6 +37,17 @@ func getItemsWithDataByPerson(personID int32) ([]ItemWithData, error) {
 	return r, nil
 }
 
+func getItemsWithoutDataByPerson(personID int32) ([]db.Item, error) {
+	ctx := context.Background()
+
+	items, err := db.Q.GetItemsByPerson(ctx, personID)
+	if err != nil {
+		return nil, err
+	}
+
+	return items, nil
+}
+
 func getItemWithDataByIdAndPerson(itemID int32, personID int32) (ItemWithData, error) {
 	ctx := context.Background()
 	r := ItemWithData{}

@@ -4,15 +4,15 @@
 # @name HealthCheck
 GET {{baseUrl}}/health
 
-### Get user's items with data
-# @name GetItemsWithData
+### Get user's items without data
+# @name GetItemsWithoutData
 GET {{baseUrl}}/items
-person_id: 1
+Authorization: Basic YXNkOmFzZA==
 
 ### Get user's item with data by ID
 # @name GetItemWithDataByID
-GET {{baseUrl}}/items/33
-person_id: 1
+GET {{baseUrl}}/items/5
+Authorization: Basic YXNkOmFzZA==
 
 ### Add a new clipboard item
 # @name AddNewItem
