@@ -45,16 +45,6 @@ func (q *Queries) CheckSizes(ctx context.Context, arg CheckSizesParams) error {
 	return err
 }
 
-const deleteItem = `-- name: DeleteItem :exec
-delete from item
-where id = $1
-`
-
-func (q *Queries) DeleteItem(ctx context.Context, id int32) error {
-	_, err := q.db.Exec(ctx, deleteItem, id)
-	return err
-}
-
 const getDataByItem = `-- name: GetDataByItem :many
 select
     id, item_id, format, data

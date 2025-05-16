@@ -26,10 +26,6 @@ values ($1, $2, $3) returning *;
 insert into data (item_id, format, data)
 values ($1, $2, $3) returning *;
 
--- name: DeleteItem :exec
-delete from item
-where id = $1;
-
 -- name: CheckSizes :exec
 delete from item i
 where i.id in (
