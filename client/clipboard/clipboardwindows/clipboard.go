@@ -18,6 +18,7 @@ type ClipboardWindows struct {
 }
 
 func (c *ClipboardWindows) Init() error {
+	fmt.Println("initing win clipboard")
 	user32 = windows.MustLoadDLL("user32.dll")
 	procRegisterClass = user32.MustFindProc("RegisterClassW")
 	procCreateWindowEx = user32.MustFindProc("CreateWindowExW")
@@ -36,6 +37,7 @@ func (c *ClipboardWindows) Init() error {
 	openClipboard = user32.MustFindProc("OpenClipboard")
 	closeClipboard = user32.MustFindProc("CloseClipboard")
 
+	getClipboardOwner = user32.MustFindProc("GetClipboardOwner")
 	emptyClipboard = user32.MustFindProc("EmptyClipboard")
 	setClipboardData = user32.MustFindProc("SetClipboardData")
 	getClipboardData = user32.MustFindProc("GetClipboardData")
@@ -43,6 +45,12 @@ func (c *ClipboardWindows) Init() error {
 	getClipboardFormatName = user32.MustFindProc("GetClipboardFormatNameW")
 	registerClipboardFormat = user32.MustFindProc("RegisterClipboardFormatW")
 
+	go createWindowAndListen()
+
+	return nil
+}
+
+func createWindowAndListen() {
 	// Register the window class
 	className, _ := syscall.UTF16PtrFromString("ClipboardListenerClass")
 
@@ -54,11 +62,12 @@ func (c *ClipboardWindows) Init() error {
 
 	ret, _, err := procRegisterClass.Call(uintptr(unsafe.Pointer(&wc)))
 	if ret == 0 {
-		return fmt.Errorf("error registering class: %w", err)
+		fmt.Printf("Error registering class: %s\n", err.Error())
+		return
+		//return fmt.Errorf("error registering class: %w", err)
 	}
 
 	windowName, _ := syscall.UTF16PtrFromString("Clipboard Listener")
-	// Create the window
 	hwnd, _, err := procCreateWindowEx.Call(
 		0,
 		uintptr(unsafe.Pointer(className)),
@@ -68,16 +77,21 @@ func (c *ClipboardWindows) Init() error {
 		0, 0, 0, 0,
 	)
 	if hwnd == 0 {
-		return fmt.Errorf("error creating window: %w", err)
+		fmt.Printf("Error creating window: %s\n", err.Error())
+		return
+		//return fmt.Errorf("error creating window: %w", err)
 	}
 
 	// Register for clipboard updates
 	ret, _, err = procAddClipboardListener.Call(hwnd)
 	if ret == 0 {
-		return fmt.Errorf("error registering clipboard listener: %w", err)
+		fmt.Printf("Error registering clipboard listener: %v\n", ret)
+		return
+		//return fmt.Errorf("error registering clipboard listener: %w", err)
 	}
 
-	text := "testing"
+	//fmt.Printf("hwnd: %v\n", hwnd)
+	/*text := "testing"
 	i := common.Item{
 		Text: text,
 		Values: []common.Value{
@@ -93,10 +107,9 @@ func (c *ClipboardWindows) Init() error {
 	}
 
 	//if write first, and then listen, it works, else listening doesn't work
-	c.Write(i)
+	c.Write(i)*/
 
-	go listen()
-	return nil
+	listen()
 }
 
 func (c *ClipboardWindows) GetChan() chan *common.Item {
@@ -153,6 +166,7 @@ var (
 	openClipboard  *windows.Proc
 	closeClipboard *windows.Proc
 
+	getClipboardOwner       *windows.Proc
 	emptyClipboard          *windows.Proc
 	setClipboardData        *windows.Proc
 	getClipboardData        *windows.Proc
@@ -227,6 +241,7 @@ func wndProc(hwnd windows.Handle, msg uint32, wParam, lParam uintptr) uintptr {
 		fmt.Println("Clipboard content updated!")
 		contentToChan()
 	default:
+		fmt.Println("message: ", msg)
 		ret, _, _ := procDefWindowProc.Call(uintptr(hwnd), uintptr(msg), wParam, lParam)
 		return ret
 	}
@@ -252,6 +267,12 @@ func listen() {
 }
 
 func contentToChan() {
+	owner, _, _ := getClipboardOwner.Call()
+	if owner == hwnd {
+		fmt.Println("Ignored own clipboard update")
+		return
+	}
+
 	i := common.Item{}
 	open()
 	defer close()
