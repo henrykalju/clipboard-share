@@ -44,3 +44,9 @@ Supported devices: Windows, X11
     - When clipboard gives new data, save it and refresh GUI list
     - When GUI selects an item, write it to clipboard
 
+## Usage (in case of self hosted server, replace url with your own)
+- Go to [https://clipboard-share.northeurope.cloudapp.azure.com/](https://clipboard-share.northeurope.cloudapp.azure.com/)
+- Create an account
+- Download the executable from [GitHub](https://github.com/henrykalju/clipboard-share/releases)
+- Run the executable
+- In the settings, use the created account and `clipboard-share.northeurope.cloudapp.azure.com` as url (no scheme in the beginning and no `/` in the end)
