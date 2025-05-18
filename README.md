@@ -1,19 +1,24 @@
 # clipboard-share
 A desktop application to share clipboard with history between devices
 
-## Setting it up
+## Setting it up (on a new VM)
 ### Server
+- `curl -fsSL https://get.docker.com -o get-docker.sh` (or install docker some other way)
 - `cd server`
 - `cp sample.env .env`
-- Change anything needed in the `.env` file
-- Add a TLS proxy in front of the `server` container (unless developing locally)
+- Change anything needed in the `.env` file (e.g. postgres login details)
+- Set up TLS proxy (a simple one is set up using the `docker-compose.yaml` and `nginx.conf`)
+    - `cp sample.nginx.conf nginx.conf`
+    - Replace [domain-name] in `nginx.conf` file
+    - `apt install certbot`
+    - `certbot certonly --standalone -d [domain-name]`
 - `docker compose up -d`
 
 ### Client
 - `cd client`
 - `wails dev --appargs "-dev"` (for local development)
-- `wails build`
-- built binaries are in the `build` folder (-dev flag still works for disabling TLS requirement)
+- `wails build` (for building)
+    - built binaries are in the `build/bin` folder (-dev flag still works for disabling TLS requirement)
 
 ## How it works
 ### Server
@@ -26,6 +31,7 @@ A desktop application to share clipboard with history between devices
     - Allows user to access history from unsupported devices
 
 ### Client
+Supported devices: Windows, X11
 - Wails
     - Binds Svelte frontend and Go backend
 - Svelte
