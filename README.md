@@ -1,24 +1,12 @@
 # clipboard-share
 A desktop application to share clipboard with history between devices
 
-## Setting it up (on a new VM)
-### Server
-- `curl -fsSL https://get.docker.com -o get-docker.sh` (or install docker some other way)
-- `cd server`
-- `cp sample.env .env`
-- Change anything needed in the `.env` file (e.g. postgres login details)
-- Set up TLS proxy (a simple one is set up using the `docker-compose.yaml` and `nginx.conf`)
-    - `cp sample.nginx.conf nginx.conf`
-    - Replace [domain-name] in `nginx.conf` file
-    - `apt install certbot`
-    - `certbot certonly --standalone -d [domain-name]`
-- `docker compose up -d`
-
-### Client
-- `cd client`
-- `wails dev --appargs "-dev"` (for local development)
-- `wails build` (for building)
-    - built binaries are in the `build/bin` folder (-dev flag still works for disabling TLS requirement)
+## Usage (in case of self hosted server, replace url with your own)
+- Go to [https://clipboard-share.northeurope.cloudapp.azure.com/](https://clipboard-share.northeurope.cloudapp.azure.com/)
+- Create an account
+- Download the executable from [GitHub](https://github.com/henrykalju/clipboard-share/releases)
+- Run the executable
+- In the settings, use the created account and `clipboard-share.northeurope.cloudapp.azure.com` as url (no scheme in the beginning and no `/` in the end)
 
 ## How it works
 ### Server
@@ -44,9 +32,24 @@ Supported devices: Windows, X11
     - When clipboard gives new data, save it and refresh GUI list
     - When GUI selects an item, write it to clipboard
 
-## Usage (in case of self hosted server, replace url with your own)
-- Go to [https://clipboard-share.northeurope.cloudapp.azure.com/](https://clipboard-share.northeurope.cloudapp.azure.com/)
-- Create an account
-- Download the executable from [GitHub](https://github.com/henrykalju/clipboard-share/releases)
-- Run the executable
-- In the settings, use the created account and `clipboard-share.northeurope.cloudapp.azure.com` as url (no scheme in the beginning and no `/` in the end)
+## Self hosting
+### Server
+- `curl -fsSL https://get.docker.com -o get-docker.sh` (or install docker some other way)
+- `git clone https://github.com/henrykalju/clipboard-share.git`
+- `cd clipboard-share`
+- `cd server`
+- `cp sample.env .env`
+- Change anything needed in the `.env` file (e.g. postgres login details)
+- Set up TLS proxy (a simple one is set up using the `docker-compose.yaml` and `nginx.conf`)
+    - `cp sample.nginx.conf nginx.conf`
+    - Replace `[domain-name]` in `nginx.conf` file
+    - `apt install certbot`
+    - `certbot certonly --standalone -d [domain-name]`
+- `docker compose up -d`
+
+### Client
+- `cd client`
+- `wails dev --appargs "-dev"` (for local development)
+- `wails build` (for building)
+    - built binaries are in the `build/bin` folder (-dev flag still works for disabling TLS requirement)
+
