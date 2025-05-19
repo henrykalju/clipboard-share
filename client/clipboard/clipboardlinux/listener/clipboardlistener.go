@@ -75,12 +75,12 @@ func ConvertItemC2G(i C.Item) common.Item {
 }
 
 func FindName(values []common.Value) string {
-	TEXTi := slices.IndexFunc(values, func(v common.Value) bool {
-		return v.Format == "TEXT"
+	STRINGi := slices.IndexFunc(values, func(v common.Value) bool {
+		return v.Format == "STRING"
 	})
-	if TEXTi != -1 {
-		return string(values[TEXTi].Data)
+	if STRINGi != -1 {
+		return string(values[STRINGi].Data)
 	}
 
-	return "NOT TEXT FORMAT"
+	return "NOT STRING FORMAT"
 }
