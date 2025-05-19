@@ -3,7 +3,7 @@ select
     *
 from item
 where person_id = $1
-order by created_at;
+order by created_at desc;
 
 -- name: GetItemByIdAndPerson :one
 select

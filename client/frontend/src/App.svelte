@@ -4,11 +4,11 @@
   import {common} from '../wailsjs/go/models'
 
   let items: common.ItemWithID[] = $state([])
-  GetHistory().then(result => items = result.reverse()).catch(err => alert(err));
+  cbUpdate();
 
   function cbUpdate(): void {
     items = [];
-    GetHistory().then(result => items = result.reverse()).catch(err => alert(err));
+    GetHistory().then(result => items = result).catch(err => alert(err));
   }
 
   function refresh(): void {
