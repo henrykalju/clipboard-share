@@ -16,7 +16,6 @@ func GetAllItems(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: remove data from item
 	items, err := getItemsWithoutDataByPerson(personID)
 	if err != nil {
 		fmt.Printf("Error getting items: %s\n", err.Error())
