@@ -1,6 +1,10 @@
 # clipboard-share
 A desktop application to share clipboard with history between devices
 
+## Public server
+- I have set up the server side on `clipboard-share.northeurope.cloudapp.azure.com`.
+- Be careful when choosing server, because while the traffic is protected with TLS, the data is not encrypted in the database.
+
 ## Usage (in case of self hosted server, replace url with your own)
 - Go to [https://clipboard-share.northeurope.cloudapp.azure.com/](https://clipboard-share.northeurope.cloudapp.azure.com/)
 - Create an account
