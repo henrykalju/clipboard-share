@@ -108,7 +108,7 @@ select
     id, person_id, type, content, created_at
 from item
 where person_id = $1
-order by created_at
+order by created_at desc
 `
 
 func (q *Queries) GetItemsByPerson(ctx context.Context, personID int32) ([]Item, error) {
