@@ -274,16 +274,29 @@ func contentToChan() {
 	}
 
 	i := common.Item{}
-	open()
+	err := open()
+	if err != nil {
+		fmt.Printf("Error opening clipboard: %s\n", err.Error())
+		return
+	}
+	fmt.Println("opened")
 	defer close()
 
+	fmt.Println("starting enum")
 	var format uintptr = 0
 	for {
 		format, _, _ = enumClipboardFormats.Call(format)
+		fmt.Println("found format", format)
 		if format == 0 {
 			break
 		}
-		addValue(&i, format)
+		fmt.Println("Adding value")
+		err = addValue(&i, format)
+		if err != nil {
+			fmt.Printf("Error adding value: %s\n", err.Error())
+			continue
+		}
+		fmt.Println("Added value")
 	}
 	//fmt.Printf("%v\n", i.Values[slices.IndexFunc(i.Values, func(e Value) bool { return e.Format == "CF_TEXT" })])
 	fmt.Println("adding content")
@@ -305,8 +318,11 @@ func findText(values []common.Value) string {
 	return "CF_TEXT NOT FOUND"
 }
 
+// TODO: Handle handle formats separately
 func forbiddenFormat(f string) bool {
-	return f == "EnterpriseDataProtectionId"
+	return  f == "EnterpriseDataProtectionId" ||
+			f == "CF_ENHMETAFILE" ||
+			f == "CF_BITMAP"
 }
 
 func addValue(i *common.Item, f uintptr) error {
@@ -375,27 +391,33 @@ func addValue(i *common.Item, f uintptr) error {
 
 		formatName = syscall.UTF16ToString(formatNameW[:])
 	}
+	fmt.Println("Format name =", formatName)
 
 	if forbiddenFormat(formatName) {
 		fmt.Printf("Skipping forbidden format: %s\n", formatName)
 		return nil
 	}
 
+	fmt.Println("Getting clipboard data")
 	ptr, _, err := getClipboardData.Call(f)
 	if ptr == 0 {
 		return fmt.Errorf("error getting clipboard data: ptr = 0, f = %d, formatName = %s, err = %w", f, formatName, err)
 	}
 
+	fmt.Println("Getting global size")
 	size, _, _ := globalSize.Call(ptr)
 	if size == 0 {
 		return fmt.Errorf("error getting globalSize")
 	}
+	fmt.Println("Global size -", size)
 
+	fmt.Println("Getting global lock")
 	mem, _, _ := globalLock.Call(ptr)
 	if mem == 0 {
 		return fmt.Errorf("error global locking")
 	}
 	defer globalUnlock.Call(ptr)
+
 	data := unsafe.Slice((*byte)(unsafe.Pointer(mem)), size)
 
 	i.Values = append(i.Values, common.Value{Format: formatName, Data: data})
