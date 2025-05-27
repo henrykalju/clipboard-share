@@ -11,7 +11,8 @@ A desktop application to share clipboard with history between devices
 - Download the executable from [GitHub](https://github.com/henrykalju/clipboard-share/releases)
 - Run the executable
 - In the settings, use the created account and `clipboard-share.northeurope.cloudapp.azure.com` as url (no scheme in the beginning and no `/` in the end)
-  
+
+Click on the image for a quick demo  
 [![Demo Video](https://img.youtube.com/vi/3YQ6cWbY0Sg/0.jpg)](https://www.youtube.com/watch?v=3YQ6cWbY0Sg)
 
 ## How it works
